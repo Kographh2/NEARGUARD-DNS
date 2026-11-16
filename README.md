@@ -8,9 +8,9 @@ No app. No VPN. No Android. Built on Next.js 15, Vercel, and Supabase.
 - Optional per-device path: `https://dns.nearguard.biz.id/<username>/<device-label>`
 - Landing page: `https://dns.nearguard.biz.id/`
 
-> **Project status:** Phase 1 (scaffold) is in progress. The README will be
-> updated as each phase lands. See the checklist at the end for what is done,
-> pending, or deliberately out of scope.
+> **Project status:** Phases 1–2 are complete. Phase 3 (blocklist pipeline) is
+> next. The README will be updated as each phase lands. See the checklist at
+> the end for what is done, pending, or deliberately out of scope.
 
 ## What it does
 
@@ -68,6 +68,24 @@ Vercel Function (region sin1)
 Supabase: Auth, Postgres with RLS, aggregated usage, capped blocked events
 Vercel Cron: retention, keepalive, circuit-breaker reconciliation
 ```
+
+### DoH endpoints
+
+| Path | Behavior |
+|---|---|
+| `POST /dns-query` | Free DoH, body `application/dns-message` |
+| `GET /dns-query?dns=...` | Free DoH, base64url query |
+| `POST /` | Free DoH through middleware rewrite |
+| `GET /?dns=...` | Free DoH through middleware rewrite |
+| `POST /<username>` | Registered DoH, or free if the username is unknown |
+| `GET /<username>?dns=...` | Registered DoH, or free if the username is unknown |
+| `POST /<username>/<device>` | Registered DoH with a device label |
+| `GET /<username>/<device>?dns=...` | Registered DoH with a device label |
+
+A browser `GET` without `dns` returns a small info page instead of a DNS error.
+Blocked names return `NXDOMAIN` with a 60-second SOA TTL. Rate-limited requests
+return a valid DNS `REFUSED` response. Unknown usernames are treated as free
+traffic and are subject to the strict unknown-username limit.
 
 **Hot-path rule:** the DNS request path never awaits Supabase. Tier lookups use
 an in-memory cache; misses refresh in the background. Counters are buffered and
@@ -254,10 +272,11 @@ Supabase commands against a project without backups.
 - [x] Health route and not-found page.
 - [x] Initial unit tests for validation, reserved routes, limits, and breaker.
 - [x] `.env.example` and `.gitignore`.
+- [x] Phase 2: RFC 8484 DoH core, root-path middleware, safe parser/builder,
+  upstream fallback, in-memory limits, circuit breaker, event buffer, and tests.
 
 ### Pending
 
-- [ ] Phase 2: RFC 8484 DoH core and tests.
 - [ ] Phase 3: blocklist pipeline and runtime benchmark.
 - [ ] Phase 4: Supabase schema, RLS, migrations, RLS tests.
 - [ ] Phase 5: auth, Turnstile, Resend, route protection.
