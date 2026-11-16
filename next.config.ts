@@ -34,6 +34,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   outputFileTracingIncludes: {
     "/dns-query": ["./data/**/*"],
     "/[username]": ["./data/**/*"],

@@ -8,9 +8,9 @@ No app. No VPN. No Android. Built on Next.js 15, Vercel, and Supabase.
 - Optional per-device path: `https://dns.nearguard.biz.id/<username>/<device-label>`
 - Landing page: `https://dns.nearguard.biz.id/`
 
-> **Project status:** Phases 1–2 are complete. Phase 3 (blocklist pipeline) is
-> next. The README will be updated as each phase lands. See the checklist at
-> the end for what is done, pending, or deliberately out of scope.
+> **Project status:** Phases 1–3 are complete. Phase 4 (Supabase schema and
+> RLS) is next. The README will be updated as each phase lands. See the
+> checklist at the end for what is done, pending, or deliberately out of scope.
 
 ## What it does
 
@@ -91,6 +91,44 @@ traffic and are subject to the strict unknown-username limit.
 an in-memory cache; misses refresh in the background. Counters are buffered and
 flushed after the response with one RPC.
 
+### Blocklist pipeline
+
+The runtime blocklist is a compact binary artifact, not a list of domain
+strings:
+
+- `data/blocklist.bin` — sorted 8-byte SHA-256 truncated hashes, one per blocked
+  domain, searched with binary search.
+- `data/blocklist-allowlist.json` — exact and parent-suffix allowlist entries.
+- `data/blocklist-meta.json` — source status, counts, collision count, artifact
+  size, and SHA-256 of the generated binary.
+
+`lib/dns/blocklist.ts` loads the binary artifact first and falls back to
+`data/blocklist.json` or an empty blocklist. The matcher checks the exact name
+and each parent suffix, so blocking `example.com` also blocks
+`sub.example.com`; a bare TLD is never blocked. The allowlist overrides both
+exact and parent matches.
+
+Sources are fetched by `npm run blocklist:build`:
+
+| Source | Format | URL |
+|---|---|---|
+| HaGeZi Multi NORMAL | wildcard domains | `https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/multi.txt` |
+| OISD Big | domains | `https://cdn.jsdelivr.net/gh/sjhgvr/oisd@main/domainswild2_big.txt` |
+| StevenBlack Unified | hosts | `https://cdn.jsdelivr.net/gh/StevenBlack/hosts@master/hosts` |
+| Phishing Army Extended | domains | `https://phishing.army/download/phishing_army_blocklist_extended.txt` |
+| URLhaus | hosts | Optional; requires `URLHAUS_API_KEY` |
+
+URLhaus retired its keyless hostfile download on 21 October 2026 and now
+returns `410 Gone`. The builder skips it unless `URLHAUS_API_KEY` is set. The
+daily GitHub Action rebuilds the artifact and commits it; required source
+failures fail the build unless a cached download exists in `data/raw/`.
+
+The 64-bit truncated hashes are not reversible domain storage. At ~480k entries
+the chance of a false positive from a collision is negligible, but it is still a
+probabilistic filter; the build reports collisions in the metadata. See
+[`docs/phase-3-blocklist.md`](docs/phase-3-blocklist.md) for source verification,
+current counts, and benchmark results.
+
 ## Locked limits and defaults
 
 | Setting | Value |
@@ -152,6 +190,9 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+If a dev server is already holding `.next`, build to a separate directory with
+`NEXT_DIST_DIR=.next-build npm run build`.
+
 ### Environment variables
 
 See [`.env.example`](.env.example) for the full list and comments. Highlights:
@@ -174,6 +215,7 @@ See [`.env.example`](.env.example) for the full list and comments. Highlights:
 | `RESEND_API_KEY` | server only | Auth email delivery |
 | `EMAIL_FROM` | server only | Sender identity |
 | `CRON_SECRET` | server only | Cron endpoint protection |
+| `URLHAUS_API_KEY` | server only | Optional URLhaus export key; skipped when absent |
 | `VERCEL_TOKEN` | server only | Optional usage reconciliation |
 | `UPSTREAM_DOH_URL` / `UPSTREAM_FALLBACK_DOH_URL` | server only | Resolvers |
 | `BLOCK_MODE` | server only | `NXDOMAIN` |
@@ -199,10 +241,10 @@ Do not print the generated values into logs or commit them.
 | `npm run typecheck` | TypeScript strict check |
 | `npm test` | Unit tests |
 | `npm run test:watch` | Vitest watch mode |
-| `npm run blocklist:build` | Build the blocklist artifact (Phase 3) |
+| `npm run blocklist:build` | Download sources and rebuild the binary artifact |
 | `npm run decoy:build` | Build the decoy IP pool (Phase 10) |
 | `npm run admin:bootstrap` | Promote `FIRST_ADMIN_EMAIL` (Phase 4/5) |
-| `npm run benchmark:runtime` | Compare Edge vs Node.js (Phase 3) |
+| `npm run benchmark:runtime` | Compare Node.js vs Edge/Web Crypto lookups |
 | `npm run test:rls` | RLS tests against `SUPABASE_DB_URL` (Phase 4) |
 
 ## iOS / macOS install
@@ -241,7 +283,8 @@ Supabase commands against a project without backups.
 - DNS parser/builder: malformed packets, compression loops, oversized input,
   GET base64url and POST wire format.
 - Blocklist matcher: exact match, parent-domain walk, allowlist override,
-  no bare-TLD blocking.
+  no bare-TLD blocking, binary artifact loading, parser formats, and corrupt
+  artifact rejection.
 - Username validation and reserved-route test.
 - Rate limiter and circuit breaker: tier limits, fail-open behavior, valid DNS
   `REFUSED` responses.
@@ -274,10 +317,11 @@ Supabase commands against a project without backups.
 - [x] `.env.example` and `.gitignore`.
 - [x] Phase 2: RFC 8484 DoH core, root-path middleware, safe parser/builder,
   upstream fallback, in-memory limits, circuit breaker, event buffer, and tests.
+- [x] Phase 3: blocklist sources, compact hashed artifact, allowlist, daily
+  rebuild workflow, parser/matcher tests, and Node.js vs Edge benchmark.
 
 ### Pending
 
-- [ ] Phase 3: blocklist pipeline and runtime benchmark.
 - [ ] Phase 4: Supabase schema, RLS, migrations, RLS tests.
 - [ ] Phase 5: auth, Turnstile, Resend, route protection.
 - [ ] Phase 6: tier cache, device identity, non-blocking event pipeline.
@@ -299,6 +343,10 @@ Supabase commands against a project without backups.
 - No Redis, no paid queue, no distributed lock.
 - Supabase Free has no backups and pauses after 7 days of inactivity.
 - Username paths are identifiers, not secrets.
+- The blocklist uses 64-bit truncated hashes; collisions are reported and
+  negligible at the expected ~480k-entry scale, but the filter is probabilistic.
+- URLhaus now requires an abuse.ch Auth-Key; without `URLHAUS_API_KEY` that
+  source is skipped.
 - No Android, DoT, DoQ, or plaintext DNS.
 - The generic profile is unsigned.
 - Real-device and legal review remain owner actions.

@@ -1,0 +1,14 @@
+{
+  "allowed": [
+    "amiprotected.it",
+    "cloudflare.com",
+    "dns.google",
+    "dns.nearguard.biz.id",
+    "nearguard.biz.id",
+    "supabase.co",
+    "supabase.in",
+    "vercel.app",
+    "vercel.com",
+    "www.amiprotected.it"
+  ]
+}

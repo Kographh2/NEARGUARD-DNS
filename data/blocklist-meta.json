@@ -1,0 +1,58 @@
+{
+  "format": "nearguard-blocklist-v1",
+  "hash": "sha256-truncated-64-bit",
+  "hashBytes": 8,
+  "generatedAt": "2026-11-16T08:40:44.638Z",
+  "sources": [
+    {
+      "name": "HaGeZi Multi NORMAL",
+      "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/multi.txt",
+      "status": "ok",
+      "bytes": 5018908,
+      "entries": 223869
+    },
+    {
+      "name": "OISD Big",
+      "url": "https://cdn.jsdelivr.net/gh/sjhgvr/oisd@main/domainswild2_big.txt",
+      "status": "ok",
+      "bytes": 4463176,
+      "entries": 228228
+    },
+    {
+      "name": "StevenBlack Unified",
+      "url": "https://cdn.jsdelivr.net/gh/StevenBlack/hosts@master/hosts",
+      "status": "ok",
+      "bytes": 2361640,
+      "entries": 77308
+    },
+    {
+      "name": "Phishing Army Extended",
+      "url": "https://phishing.army/download/phishing_army_blocklist_extended.txt",
+      "status": "ok",
+      "bytes": 3117316,
+      "entries": 144129
+    },
+    {
+      "name": "URLhaus",
+      "url": "https://urlhaus-api.abuse.ch/v2/files/exports/[redacted]/hostfile.txt",
+      "status": "skipped",
+      "bytes": 0,
+      "entries": 0,
+      "note": "URLHAUS_API_KEY not set"
+    }
+  ],
+  "allowlist": {
+    "file": "data/blocklist-allowlist.json",
+    "count": 10
+  },
+  "totals": {
+    "parsedEntries": 673534,
+    "uniqueDomains": 482201,
+    "allowlisted": 2392,
+    "blockedDomains": 479809,
+    "hashes": 479809,
+    "collisions": 0,
+    "binBytes": 3838472,
+    "binSha256": "87dbc61db194883174cbcf0efa969d17212aed8065068836c7c1312169697855"
+  }
+}

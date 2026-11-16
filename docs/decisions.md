@@ -55,3 +55,8 @@ latest decision wins.
 | D-048 | Use a baseline CSP in Phase 1 and tighten it with a nonce in Phase 13 | Avoid blocking Next.js during development while keeping a security target |
 | D-049 | Final README must include architecture, limits, security model, deploy steps, bootstrap, iOS guide, retention, and rollback | Prompt deliverable |
 | D-050 | Final checklist must list done / pending / known limitations | Prompt deliverable |
+| D-051 | Store the runtime blocklist as sorted 8-byte SHA-256 truncated hashes in `data/blocklist.bin` | Compact (~3.8 MB for ~480k domains), no domain strings in the hot-path artifact, negligible 64-bit collision risk at this scale |
+| D-052 | Use jsDelivr mirrors for HaGeZi, OISD, and StevenBlack; keep raw GitHub as a fallback in docs | `raw.githubusercontent.com` timed out from this environment while jsDelivr returned 200 with the same files |
+| D-053 | URLhaus is optional via `URLHAUS_API_KEY`; skip it when the key is absent | abuse.ch retired keyless hostfile downloads on 21 October 2026 and now requires an Auth-Key |
+| D-054 | Keep DoH routes on the Node.js runtime | The artifact is loaded with `node:fs` and hashed synchronously; the Edge/Web Crypto simulation is slower and would need the artifact bundled |
+| D-055 | Fail the build when a required source fails and no cached copy exists | Avoid silently publishing a smaller blocklist; `data/raw/` is a local retry cache only |
