@@ -60,3 +60,4 @@ latest decision wins.
 | D-053 | URLhaus is optional via `URLHAUS_API_KEY`; skip it when the key is absent | abuse.ch retired keyless hostfile downloads on 21 October 2026 and now requires an Auth-Key |
 | D-054 | Keep DoH routes on the Node.js runtime | The artifact is loaded with `node:fs` and hashed synchronously; the Edge/Web Crypto simulation is slower and would need the artifact bundled |
 | D-055 | Fail the build when a required source fails and no cached copy exists | Avoid silently publishing a smaller blocklist; `data/raw/` is a local retry cache only |
+| D-056 | Store the admin IP in `ip_reveal_audit.ip_of_admin_enc`, never plaintext | Audit trail without breaking the rule that real IPs are encrypted at rest |

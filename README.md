@@ -9,8 +9,10 @@ No app. No VPN. No Android. Built on Next.js 15, Vercel, and Supabase.
 - Landing page: `https://dns.nearguard.biz.id/`
 
 > **Project status:** Phases 1–3 are complete. Phase 4 (Supabase schema and
-> RLS) is next. The README will be updated as each phase lands. See the
-> checklist at the end for what is done, pending, or deliberately out of scope.
+> RLS) is implemented; applying the migration and running the remote RLS tests
+> are pending real Supabase credentials. The README will be updated as each
+> phase lands. See the checklist at the end for what is done, pending, or
+> deliberately out of scope.
 
 ## What it does
 
@@ -128,6 +130,42 @@ the chance of a false positive from a collision is negligible, but it is still a
 probabilistic filter; the build reports collisions in the metadata. See
 [`docs/phase-3-blocklist.md`](docs/phase-3-blocklist.md) for source verification,
 current counts, and benchmark results.
+
+## Database schema and RLS
+
+Phase 4 lives in
+[`supabase/migrations/202611160001_initial_schema.sql`](supabase/migrations/202611160001_initial_schema.sql)
+with a reversible
+[`rollback`](supabase/rollback/202611160001_initial_schema.down.sql). See
+[`docs/phase-4-schema.md`](docs/phase-4-schema.md) for the table/RLS matrix and
+test plan.
+
+- Tables: `profiles`, `devices`, `device_ips`, `usage_daily`,
+  `blocked_domains_daily`, `blocked_events`, `rate_limit_config`,
+  `rate_limit_overrides`, `admin_security`, `ip_reveal_audit`, `app_settings`.
+- `profiles` is created by an `auth.users` trigger. A second trigger blocks
+  client changes to `id`, `username`, `role`, and `status`; users may update only
+  `name` and `log_blocked`.
+- RLS lets authenticated users read only their own profile, devices, daily
+  usage, blocked-domain aggregates, and blocked events. There is no client
+  policy for `device_ips`, `admin_security`, `ip_reveal_audit`, rate-limit
+  config, or app settings; the service role bypasses RLS for those.
+- `blocked_events` is capped per user by a trim trigger. Seed settings hold the
+  locked retention, rate-limit, circuit-breaker, PIN, and decoy values.
+- `ip_reveal_audit` stores the admin IP encrypted (`ip_of_admin_enc`), not in
+  plaintext, consistent with the privacy rule.
+
+Commands:
+
+```bash
+# apply the migration with the Supabase CLI or dashboard SQL editor
+npm run admin:bootstrap   # promote FIRST_ADMIN_EMAIL after that user signs up
+npm run test:rls          # requires a real SUPABASE_DB_URL
+```
+
+`npm run test:rls` runs in a transaction and rolls back; it creates temporary
+`@nearguard.invalid` auth users, checks own-row access, role/status/username
+protection, and denial for encrypted-IP/admin tables.
 
 ## Locked limits and defaults
 
@@ -319,10 +357,13 @@ Supabase commands against a project without backups.
   upstream fallback, in-memory limits, circuit breaker, event buffer, and tests.
 - [x] Phase 3: blocklist sources, compact hashed artifact, allowlist, daily
   rebuild workflow, parser/matcher tests, and Node.js vs Edge benchmark.
+- [x] Phase 4: Supabase schema, RLS policies, triggers, seed settings, down
+  migration, RLS test script, and admin bootstrap script.
 
 ### Pending
 
-- [ ] Phase 4: Supabase schema, RLS, migrations, RLS tests.
+- [ ] Phase 4 remote verification: apply the migration and run `npm run test:rls`
+  with a real `SUPABASE_DB_URL`.
 - [ ] Phase 5: auth, Turnstile, Resend, route protection.
 - [ ] Phase 6: tier cache, device identity, non-blocking event pipeline.
 - [ ] Phase 7: rate limiting and dashboard usage.
