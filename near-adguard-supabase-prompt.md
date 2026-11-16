@@ -12,7 +12,7 @@ Scope: **no VPS, Vercel + Supabase, DNS-over-HTTPS only, iOS/iPadOS/macOS client
 ## Part 1 — OpenCode Trigger Prompts
 
 ### Option A: One-line trigger
-
+ 
 ```
 Read ./PROMPT.md completely before doing anything. Build NEAR ADGUARD (hostname dns.nearguard.biz.id): a Next.js 15 + TypeScript + Supabase project on Vercel, DoH only, iOS profile only, with user/admin roles, per-user DoH paths (/username), user and admin dashboards, and a PIN-protected admin IP view with decoy IPs. Work one phase at a time; after each phase show what you did plus verification output, and wait for my "continue". The DNS hot path must never wait on Supabase. Verify current Vercel/Supabase/Upstash limits before designing. Never skip security, privacy, or verification steps.
 ```
