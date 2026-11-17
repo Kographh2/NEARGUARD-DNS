@@ -15,6 +15,7 @@
     "decoy:build": "tsx scripts/build-decoy-pool.ts",
     "admin:bootstrap": "tsx scripts/bootstrap-admin.ts",
     "benchmark:runtime": "tsx scripts/benchmark-runtime.ts",
+    "db:migrate": "tsx scripts/apply-migration.ts",
     "test:rls": "tsx scripts/test-rls.ts"
   },
   "dependencies": {

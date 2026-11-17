@@ -50,14 +50,26 @@ async function main(): Promise<void> {
         "update public.profiles set log_blocked = false where id = $1",
         [USER_A],
       );
-      const updated = await client.query<{ name: string; log_blocked: boolean }>(
-        "select name, log_blocked from public.profiles where id = $1",
+      await client.query(
+        "update public.profiles set categories = 1 where id = $1",
+        [USER_A],
+      );
+      const updated = await client.query<{
+        name: string;
+        log_blocked: boolean;
+        categories: number;
+      }>(
+        "select name, log_blocked, categories from public.profiles where id = $1",
         [USER_A],
       );
       assert(
         updated.rows[0]?.name === "RLS A Updated" &&
           updated.rows[0]?.log_blocked === false,
         "user can update own name and log_blocked",
+      );
+      assert(
+        updated.rows[0]?.categories === 1,
+        "user can update own categories",
       );
 
       await expectPermissionDenied(client, "select * from public.device_ips");
@@ -114,6 +126,83 @@ async function main(): Promise<void> {
         adminSecurity.rows.length === 1,
         "service role can read admin_security",
       );
+
+      await client.query(
+        "select public.flush_dns_counters($1::jsonb, $2::jsonb, $3::jsonb)",
+        [
+          JSON.stringify([
+            {
+              user_id: USER_A,
+              device_id: DEVICE_A,
+              requests: 2,
+              blocked: 1,
+              rate_limited: 0,
+            },
+          ]),
+          JSON.stringify([
+            {
+              user_id: USER_A,
+              domain: "ads-a.example",
+              category: 16,
+              count: 1,
+            },
+          ]),
+          JSON.stringify([
+            {
+              user_id: USER_A,
+              device_id: DEVICE_A,
+              domain: "ads-a.example",
+              qtype: 1,
+              category: 16,
+            },
+          ]),
+        ],
+      );
+
+      const usage = await client.query<{
+        requests: string;
+        blocked: string;
+      }>(
+        `select requests, blocked
+           from public.usage_daily
+          where user_id = $1
+            and device_id = $2
+            and day = current_date`,
+        [USER_A, DEVICE_A],
+      );
+      assert(
+        usage.rows[0]?.requests === "12" && usage.rows[0]?.blocked === "3",
+        "flush_dns_counters upserts usage counters",
+      );
+
+      const blockedDomains = await client.query<{
+        count: string;
+        category: number;
+      }>(
+        `select count, category
+           from public.blocked_domains_daily
+          where user_id = $1
+            and day = current_date
+            and domain = 'ads-a.example'`,
+        [USER_A],
+      );
+      assert(
+        blockedDomains.rows[0]?.count === "3" &&
+          blockedDomains.rows[0]?.category === 16,
+        "flush_dns_counters upserts blocked-domain aggregates with category",
+      );
+
+      const blockedEvents = await client.query<{ count: string }>(
+        `select count(*)::text as count
+           from public.blocked_events
+          where user_id = $1
+            and category = 16`,
+        [USER_A],
+      );
+      assert(
+        blockedEvents.rows[0]?.count === "2",
+        "flush_dns_counters inserts blocked events with category",
+      );
     });
 
     await client.query("rollback");
@@ -127,94 +216,81 @@ async function main(): Promise<void> {
 }
 
 async function seed(client: Client): Promise<void> {
-  await client.query(
-    "delete from auth.users where email in ($1, $2, $3)",
-    ["rls-a@nearguard.invalid", "rls-b@nearguard.invalid", "rls-admin@nearguard.invalid"],
-  );
+  await client.query("set local session_replication_role = replica");
+  try {
+    for (const [id, name, username] of [
+      [USER_A, "RLS A", "rls-a"],
+      [USER_B, "RLS B", "rls-b"],
+      [USER_ADMIN, "RLS Admin", "rls-admin"],
+    ] as const) {
+      await client.query(
+        `insert into public.profiles (id, name, username)
+         values ($1, $2, $3)`,
+        [id, name, username],
+      );
+    }
 
-  for (const [id, email, name, username] of [
-    [USER_A, "rls-a@nearguard.invalid", "RLS A", "rls-a"],
-    [USER_B, "rls-b@nearguard.invalid", "RLS B", "rls-b"],
-    [USER_ADMIN, "rls-admin@nearguard.invalid", "RLS Admin", "rls-admin"],
-  ] as const) {
     await client.query(
-      `insert into auth.users (
-         instance_id, id, aud, role, email, encrypted_password,
-         email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
-         created_at, updated_at
-       ) values (
-         '00000000-0000-0000-0000-000000000000', $1, 'authenticated',
-         'authenticated', $2, 'test-only', now(),
-         '{"provider":"email","providers":["email"]}'::jsonb,
-         jsonb_build_object('name', $3::text, 'username', $4::text),
-         now(), now()
-       )`,
-      [id, email, name, username],
+      "update public.profiles set role = 'admin' where id = $1",
+      [USER_ADMIN],
     );
+
     await client.query(
-      `insert into public.profiles (id, name, username)
-       values ($1, $2, $3)
-       on conflict (id) do nothing`,
-      [id, name, username],
+      `insert into public.devices
+         (id, user_id, tier, label, client_hash, ua_family, country_code)
+       values
+         ($1, $4, 'registered', 'laptop', 'rls-device-a-hash', 'Safari', 'ID'),
+         ($2, $5, 'registered', 'phone', 'rls-device-b-hash', 'Safari', 'SG'),
+         ($3, null, 'free', null, 'rls-device-free-hash', 'Safari', 'US')`,
+      [DEVICE_A, DEVICE_B, DEVICE_FREE, USER_A, USER_B],
     );
+
+    await client.query(
+      `insert into public.device_ips (device_id, ip_enc, ip_hmac, ip_family)
+       values
+         ($1, 'enc-a', 'hmac-a', 4),
+         ($2, 'enc-b', 'hmac-b', 6),
+         ($3, 'enc-free', 'hmac-free', 4)`,
+      [DEVICE_A, DEVICE_B, DEVICE_FREE],
+    );
+
+    await client.query(
+      `insert into public.usage_daily
+         (user_id, device_id, day, requests, blocked, rate_limited)
+       values
+         ($1, $2, current_date, 10, 2, 1),
+         ($1, null, current_date - 1, 5, 1, 0),
+         ($3, $4, current_date, 7, 3, 0),
+         (null, $5, current_date, 4, 1, 0)`,
+      [USER_A, DEVICE_A, USER_B, DEVICE_B, DEVICE_FREE],
+    );
+
+    await client.query(
+      `insert into public.blocked_domains_daily
+         (user_id, day, domain, count, category)
+       values
+         ($1, current_date, 'ads-a.example', 2, 8),
+         ($2, current_date, 'ads-b.example', 3, 16)`,
+      [USER_A, USER_B],
+    );
+
+    await client.query(
+      `insert into public.blocked_events
+         (user_id, device_id, domain, qtype, category)
+       values
+         ($1, $3, 'ads-a.example', 1, 8),
+         ($2, $4, 'ads-b.example', 28, 16)`,
+      [USER_A, USER_B, DEVICE_A, DEVICE_B],
+    );
+
+    await client.query(
+      `insert into public.admin_security (admin_id, pin_hash)
+       values ($1, 'test-pin-hash')`,
+      [USER_ADMIN],
+    );
+  } finally {
+    await client.query("set local session_replication_role = origin");
   }
-
-  await client.query(
-    "update public.profiles set role = 'admin' where id = $1",
-    [USER_ADMIN],
-  );
-
-  await client.query(
-    `insert into public.devices
-       (id, user_id, tier, label, client_hash, ua_family, country_code)
-     values
-       ($1, $4, 'registered', 'laptop', 'rls-device-a-hash', 'Safari', 'ID'),
-       ($2, $5, 'registered', 'phone', 'rls-device-b-hash', 'Safari', 'SG'),
-       ($3, null, 'free', null, 'rls-device-free-hash', 'Safari', 'US')`,
-    [DEVICE_A, DEVICE_B, DEVICE_FREE, USER_A, USER_B],
-  );
-
-  await client.query(
-    `insert into public.device_ips (device_id, ip_enc, ip_hmac, ip_family)
-     values
-       ($1, 'enc-a', 'hmac-a', 4),
-       ($2, 'enc-b', 'hmac-b', 6),
-       ($3, 'enc-free', 'hmac-free', 4)`,
-    [DEVICE_A, DEVICE_B, DEVICE_FREE],
-  );
-
-  await client.query(
-    `insert into public.usage_daily
-       (user_id, device_id, day, requests, blocked, rate_limited)
-     values
-       ($1, $2, current_date, 10, 2, 1),
-       ($1, null, current_date - 1, 5, 1, 0),
-       ($3, $4, current_date, 7, 3, 0),
-       (null, $5, current_date, 4, 1, 0)`,
-    [USER_A, DEVICE_A, USER_B, DEVICE_B, DEVICE_FREE],
-  );
-
-  await client.query(
-    `insert into public.blocked_domains_daily (user_id, day, domain, count)
-     values
-       ($1, current_date, 'ads-a.example', 2),
-       ($2, current_date, 'ads-b.example', 3)`,
-    [USER_A, USER_B],
-  );
-
-  await client.query(
-    `insert into public.blocked_events (user_id, device_id, domain, qtype)
-     values
-       ($1, $3, 'ads-a.example', 1),
-       ($2, $4, 'ads-b.example', 28)`,
-    [USER_A, USER_B, DEVICE_A, DEVICE_B],
-  );
-
-  await client.query(
-    `insert into public.admin_security (admin_id, pin_hash)
-     values ($1, 'test-pin-hash')`,
-    [USER_ADMIN],
-  );
 }
 
 async function withRole(
