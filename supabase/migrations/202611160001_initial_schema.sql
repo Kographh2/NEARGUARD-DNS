@@ -14,7 +14,7 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now(),
   constraint profiles_username_key unique (username)
 );
-
+ 
 create unique index if not exists profiles_username_lower_key
   on public.profiles (lower(username));
 
