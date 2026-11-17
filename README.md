@@ -89,6 +89,14 @@ Blocked names return `NXDOMAIN` with a 60-second SOA TTL. Rate-limited requests
 return a valid DNS `REFUSED` response. Unknown usernames are treated as free
 traffic and are subject to the strict unknown-username limit.
 
+### App routes
+
+| Path | Behavior |
+|---|---|
+| `GET /nearguard.mobileconfig` | Unsigned free Apple DoH profile |
+| `POST /api/auth/register` | Create an account with Turnstile verification |
+| `POST /api/auth/login` | Sign in with Turnstile verification |
+
 **Hot-path rule:** the DNS request path never awaits Supabase. Tier lookups use
 an in-memory cache; misses refresh in the background. Counters are buffered and
 flushed after the response with one RPC.

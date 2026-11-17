@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   deviceLabelSchema,
   domainSchema,
+  firstValidationMessage,
   normalizeDomain,
   passwordStrength,
   registerSchema,
@@ -85,6 +86,16 @@ describe("registerSchema", () => {
     expect(
       registerSchema.safeParse({ ...base, password: "password1234" }).success,
     ).toBe(false);
+  });
+
+  it("returns a clear message for missing fields", () => {
+    const parsed = registerSchema.safeParse({});
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(firstValidationMessage(parsed.error)).toBe(
+        "Fill in all required fields and try again.",
+      );
+    }
   });
 });
 

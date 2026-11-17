@@ -85,6 +85,10 @@ export function getTurnstileSecretKey(): string {
   return requireEnv("TURNSTILE_SECRET_KEY");
 }
 
+export function getTurnstileSiteKey(): string {
+  return requireEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY");
+}
+
 export function getResendApiKey(): string {
   return requireEnv("RESEND_API_KEY");
 }

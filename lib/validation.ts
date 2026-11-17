@@ -142,6 +142,17 @@ export const domainSchema = z
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export function firstValidationMessage(error: z.ZodError): string {
+  const issue = error.issues[0];
+  if (!issue) {
+    return "Check the form and try again.";
+  }
+  if (issue.code === "invalid_type") {
+    return "Fill in all required fields and try again.";
+  }
+  return issue.message;
+}
+
 export function normalizeDomain(input: string): string {
   let value = input.trim().toLowerCase();
   while (value.endsWith(".")) {
