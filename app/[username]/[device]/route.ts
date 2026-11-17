@@ -1,4 +1,6 @@
+import { isUnroutableUsername } from "@/lib/constants";
 import { handleDohRequest } from "@/lib/dns/handler";
+import { plainNotFound } from "@/lib/http";
 import { deviceLabelSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -9,9 +11,12 @@ export async function GET(
   context: { params: Promise<{ username: string; device: string }> },
 ): Promise<Response> {
   const { username, device } = await context.params;
+  if (isUnroutableUsername(username)) {
+    return plainNotFound();
+  }
   const parsed = deviceLabelSchema.safeParse(device);
   if (!parsed.success) {
-    return new Response("Not Found", { status: 404 });
+    return plainNotFound();
   }
   return handleDohRequest(request, {
     route: "username",
@@ -25,9 +30,12 @@ export async function POST(
   context: { params: Promise<{ username: string; device: string }> },
 ): Promise<Response> {
   const { username, device } = await context.params;
+  if (isUnroutableUsername(username)) {
+    return plainNotFound();
+  }
   const parsed = deviceLabelSchema.safeParse(device);
   if (!parsed.success) {
-    return new Response("Not Found", { status: 404 });
+    return plainNotFound();
   }
   return handleDohRequest(request, {
     route: "username",

@@ -1,28 +1,51 @@
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
   CIRCUIT_BREAKER_THRESHOLDS,
   HOBBY_MONTHLY_INVOCATIONS,
   isReservedUsername,
+  isUnroutableUsername,
   RATE_LIMITS,
   RESERVED_TOP_LEVEL_SEGMENTS,
 } from "@/lib/constants";
 
+function topLevelRouteSegments(): string[] {
+  const appDir = join(process.cwd(), "app");
+  const segments = new Set<string>();
+
+  for (const entry of readdirSync(appDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    if (entry.name.startsWith("(") && entry.name.endsWith(")")) {
+      const groupDir = join(appDir, entry.name);
+      for (const child of readdirSync(groupDir, { withFileTypes: true })) {
+        if (child.isDirectory() && !child.name.startsWith("[")) {
+          segments.add(child.name);
+        }
+      }
+      continue;
+    }
+
+    if (!entry.name.startsWith("[") && !entry.name.startsWith("_")) {
+      segments.add(entry.name);
+    }
+  }
+
+  return [...segments].sort();
+}
+
 describe("reserved routes", () => {
   it("protects every current top-level route", () => {
-    for (const segment of [
-      "login",
-      "register",
-      "forgot-password",
-      "reset-password",
-      "dashboard",
-      "admin",
-      "privacy",
-      "dns-query",
-      "nearguard.mobileconfig",
-      "api",
-      "_next",
-    ]) {
+    const segments = topLevelRouteSegments();
+
+    expect(segments).toContain("nearguard.mobileconfig");
+
+    for (const segment of segments) {
       expect(RESERVED_TOP_LEVEL_SEGMENTS.has(segment)).toBe(true);
     }
   });
@@ -31,6 +54,13 @@ describe("reserved routes", () => {
     expect(isReservedUsername("LOGIN")).toBe(true);
     expect(isReservedUsername("  Dashboard  ")).toBe(true);
     expect(isReservedUsername("not-reserved")).toBe(false);
+  });
+
+  it("rejects reserved and dotted usernames on the dynamic route", () => {
+    expect(isUnroutableUsername("register")).toBe(true);
+    expect(isUnroutableUsername("nearguard.mobileconfig")).toBe(true);
+    expect(isUnroutableUsername("someone.example")).toBe(true);
+    expect(isUnroutableUsername("someone")).toBe(false);
   });
 });
 

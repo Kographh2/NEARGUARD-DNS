@@ -197,6 +197,10 @@ export function isReservedUsername(value: string): boolean {
   return RESERVED_USERNAMES.has(value.trim().toLowerCase());
 }
 
+export function isUnroutableUsername(value: string): boolean {
+  return value.includes(".") || isReservedUsername(value);
+}
+
 export const RATE_LIMITS = {
   free: {
     perMinute: 120,
