@@ -37,7 +37,7 @@ describe("auth API routes", () => {
 
     expect(response.status).toBe(500);
     const body = (await response.json()) as { error?: string };
-    expect(body.error).toContain("not configured");
+    expect(body.error).toContain("belum dikonfigurasi");
   });
 
   it("redirects malformed form posts instead of crashing", async () => {

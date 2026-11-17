@@ -6,8 +6,8 @@ import { TurnstileWidget } from "@/components/ui/turnstile-widget";
 import { publicEnv } from "@/lib/public-env";
 
 export const metadata: Metadata = {
-  title: "Create account",
-  description: "Create a free NEAR ADGUARD account.",
+  title: "Buat akun",
+  description: "Buat akun NEAR ADGUARD gratis.",
 };
 
 export default async function RegisterPage({
@@ -19,31 +19,23 @@ export default async function RegisterPage({
   const error = Array.isArray(params.error) ? params.error[0] : params.error;
 
   return (
-    <div className="card">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-        Free account
-      </p>
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight text-white">
-        Create your NEAR ADGUARD account
-      </h1>
-      <p className="mt-2 text-sm leading-6 text-slate-400">
-        Your username becomes your personal DoH path. Choose carefully: a
-        username is an identifier, not a secret.
+    <div className="panel">
+      <h1 className="section-title">Buat akun</h1>
+      <p className="section-copy">
+        Username menjadi path DoH pribadi kamu. Username adalah pengenal, bukan
+        rahasia.
       </p>
 
       {error ? (
-        <p
-          role="alert"
-          className="mt-4 rounded-xl border border-red-400/20 bg-red-400/5 px-3 py-2 text-sm text-red-200"
-        >
+        <p role="alert" className="notice notice-error mt-4">
           {error.slice(0, 240)}
         </p>
       ) : null}
 
-      <form action="/api/auth/register" method="post" className="mt-7 space-y-4">
+      <form action="/api/auth/register" method="post" className="mt-6 space-y-4">
         <div>
           <label htmlFor="name" className="label">
-            Name
+            Nama
           </label>
           <input
             id="name"
@@ -53,7 +45,7 @@ export default async function RegisterPage({
             required
             maxLength={80}
             className="input"
-            placeholder="Your name"
+            placeholder="Nama kamu"
           />
         </div>
 
@@ -61,25 +53,22 @@ export default async function RegisterPage({
           <label htmlFor="username" className="label">
             Username
           </label>
-          <div className="flex items-center rounded-xl border border-white/10 bg-slate-950/60 focus-within:border-emerald-400/60 focus-within:ring-2 focus-within:ring-emerald-400/20">
-            <span className="pl-4 text-sm text-slate-500">/</span>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              autoComplete="username"
-              required
-              minLength={3}
-              maxLength={20}
-              pattern="[a-z][a-z0-9_-]{2,19}"
-              className="w-full bg-transparent px-2 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
-              placeholder="yourname"
-              aria-describedby="username-hint"
-            />
-          </div>
-          <p id="username-hint" className="mt-1.5 text-xs leading-5 text-slate-500">
-            3–20 lowercase letters, numbers, underscores, or hyphens. Must start
-            with a letter. Reserved names are rejected.
+          <input
+            id="username"
+            name="username"
+            type="text"
+            autoComplete="username"
+            required
+            minLength={3}
+            maxLength={20}
+            pattern="[a-z][a-z0-9_-]{2,19}"
+            className="input"
+            placeholder="namakamu"
+            aria-describedby="username-hint"
+          />
+          <p id="username-hint" className="field-hint">
+            3 sampai 20 huruf kecil, angka, garis bawah, atau tanda hubung.
+            Harus diawali huruf. Nama yang dipakai route ditolak.
           </p>
         </div>
 
@@ -95,24 +84,24 @@ export default async function RegisterPage({
             required
             maxLength={254}
             className="input"
-            placeholder="you@example.com"
+            placeholder="nama@contoh.com"
           />
         </div>
 
         <PasswordField
           name="password"
-          label="Password"
+          label="Kata sandi"
           autoComplete="new-password"
-          placeholder="At least 12 characters"
+          placeholder="Minimal 12 karakter"
           minLength={12}
-          hint="At least 12 characters, including a letter and a number."
+          hint="Minimal 12 karakter, termasuk satu huruf dan satu angka."
         />
 
         <PasswordField
           name="confirmPassword"
-          label="Confirm password"
+          label="Ulangi kata sandi"
           autoComplete="new-password"
-          placeholder="Repeat your password"
+          placeholder="Ulangi kata sandi"
           minLength={12}
         />
 
@@ -122,18 +111,12 @@ export default async function RegisterPage({
         />
 
         <button type="submit" className="btn-primary w-full">
-          Create account
+          Buat akun
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-400">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="font-medium text-emerald-300 no-underline hover:text-emerald-200"
-        >
-          Sign in
-        </Link>
+      <p className="small mt-5">
+        Sudah punya akun? <Link href="/login">Masuk</Link>.
       </p>
     </div>
   );

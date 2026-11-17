@@ -30,7 +30,7 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json(
         {
           error:
-            "Authentication is not configured on this deployment. Check the server environment variables.",
+            "Autentikasi belum dikonfigurasi di deployment ini. Periksa variabel lingkungan server.",
         },
         { status: 500 },
       );
@@ -45,7 +45,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/login",
-      "Submit the sign-in form from this site and try again.",
+      "Kirim formulir masuk dari situs ini lalu coba lagi.",
     );
   }
 
@@ -58,7 +58,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/login",
-      "Enter a valid email address and password.",
+      "Masukkan alamat email dan kata sandi yang valid.",
     );
   }
 
@@ -67,7 +67,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/login",
-      "Complete the bot verification and try again.",
+      "Selesaikan verifikasi bot lalu coba lagi.",
     );
   }
 
@@ -76,8 +76,8 @@ export async function POST(request: Request): Promise<Response> {
 
   if (error) {
     const message = error.message.toLowerCase().includes("email not confirmed")
-      ? "Confirm your email before signing in."
-      : "Invalid email or password.";
+      ? "Konfirmasi email sebelum masuk."
+      : "Email atau kata sandi salah.";
     return redirectWithError(request, "/login", message);
   }
 

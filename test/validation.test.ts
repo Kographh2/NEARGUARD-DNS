@@ -93,7 +93,7 @@ describe("registerSchema", () => {
     expect(parsed.success).toBe(false);
     if (!parsed.success) {
       expect(firstValidationMessage(parsed.error)).toBe(
-        "Fill in all required fields and try again.",
+        "Isi semua kolom wajib dan coba lagi.",
       );
     }
   });

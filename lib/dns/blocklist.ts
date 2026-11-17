@@ -5,16 +5,19 @@ import { join } from "node:path";
 import { normalizeDnsName } from "@/lib/dns/wire";
 
 export const BLOCKLIST_HASH_BYTES = 8;
+export const BLOCKLIST_ENTRY_BYTES = BLOCKLIST_HASH_BYTES + 1;
 
 export interface BlocklistData {
   version?: string;
   generatedAt?: string;
   blocked: string[];
   allowed?: string[];
+  categories?: Record<string, number>;
 }
 
 export interface DomainBlocklist {
   readonly size: number;
+  match(name: string): number | null;
   isBlocked(name: string): boolean;
 }
 
@@ -34,6 +37,7 @@ export const DEFAULT_ALLOWLIST = [
 export class Blocklist implements DomainBlocklist {
   private readonly blocked: ReadonlySet<string>;
   private readonly allowed: ReadonlySet<string>;
+  private readonly categories: ReadonlyMap<string, number>;
 
   constructor(data: BlocklistData) {
     this.blocked = normalizeSet(data.blocked);
@@ -41,21 +45,41 @@ export class Blocklist implements DomainBlocklist {
       ...DEFAULT_ALLOWLIST,
       ...(data.allowed ?? []),
     ]);
+    this.categories = normalizeCategories(data.categories);
   }
 
   get size(): number {
     return this.blocked.size;
   }
 
-  isBlocked(name: string): boolean {
+  match(name: string): number | null {
     const normalized = normalizeDnsName(name);
-    if (normalized.length === 0 || normalized === ".") {
-      return false;
+    if (
+      normalized.length === 0 ||
+      normalized === "." ||
+      !normalized.includes(".")
+    ) {
+      return null;
     }
     if (matches(this.allowed, normalized)) {
-      return false;
+      return null;
     }
-    return matches(this.blocked, normalized);
+
+    const labels = normalized.split(".");
+    for (let index = 0; index < labels.length; index += 1) {
+      const candidate = labels.slice(index).join(".");
+      if (!candidate.includes(".")) {
+        continue;
+      }
+      if (this.blocked.has(candidate)) {
+        return this.categories.get(candidate) ?? 1;
+      }
+    }
+    return null;
+  }
+
+  isBlocked(name: string): boolean {
+    return this.match(name) !== null;
   }
 }
 
@@ -65,11 +89,11 @@ export class HashedBlocklist implements DomainBlocklist {
   private readonly count: number;
 
   constructor(hashes: Uint8Array, allowed: Iterable<string> = []) {
-    if (hashes.length % BLOCKLIST_HASH_BYTES !== 0) {
-      throw new Error("Blocklist artifact length is not a multiple of 8 bytes");
+    if (hashes.length % BLOCKLIST_ENTRY_BYTES !== 0) {
+      throw new Error("Blocklist artifact length is not a multiple of 9 bytes");
     }
     this.hashes = hashes;
-    this.count = hashes.length / BLOCKLIST_HASH_BYTES;
+    this.count = hashes.length / BLOCKLIST_ENTRY_BYTES;
     this.allowed = normalizeSet([...DEFAULT_ALLOWLIST, ...allowed]);
   }
 
@@ -77,9 +101,9 @@ export class HashedBlocklist implements DomainBlocklist {
     return this.count;
   }
 
-  isBlocked(name: string): boolean {
+  match(name: string): number | null {
     if (this.count === 0) {
-      return false;
+      return null;
     }
 
     const normalized = normalizeDnsName(name);
@@ -88,24 +112,33 @@ export class HashedBlocklist implements DomainBlocklist {
       normalized === "." ||
       !normalized.includes(".")
     ) {
-      return false;
+      return null;
     }
     if (matches(this.allowed, normalized)) {
-      return false;
+      return null;
     }
 
     let candidate = normalized;
     while (candidate.includes(".")) {
-      if (this.hasHash(hashDomain(candidate))) {
-        return true;
+      const category = this.categoryForHash(hashDomain(candidate));
+      if (category !== null) {
+        return category;
       }
       const dot = candidate.indexOf(".");
       candidate = candidate.slice(dot + 1);
     }
-    return false;
+    return null;
+  }
+
+  isBlocked(name: string): boolean {
+    return this.match(name) !== null;
   }
 
   hasHash(hash: Uint8Array): boolean {
+    return this.categoryForHash(hash) !== null;
+  }
+
+  categoryForHash(hash: Uint8Array): number | null {
     if (hash.length !== BLOCKLIST_HASH_BYTES) {
       throw new Error("Blocklist hash must be exactly 8 bytes");
     }
@@ -114,13 +147,10 @@ export class HashedBlocklist implements DomainBlocklist {
     let high = this.count - 1;
     while (low <= high) {
       const middle = (low + high) >>> 1;
-      const comparison = compareHashAt(
-        this.hashes,
-        middle * BLOCKLIST_HASH_BYTES,
-        hash,
-      );
+      const offset = middle * BLOCKLIST_ENTRY_BYTES;
+      const comparison = compareHashAt(this.hashes, offset, hash);
       if (comparison === 0) {
-        return true;
+        return this.hashes[offset + BLOCKLIST_HASH_BYTES] || 1;
       }
       if (comparison < 0) {
         low = middle + 1;
@@ -128,7 +158,7 @@ export class HashedBlocklist implements DomainBlocklist {
         high = middle - 1;
       }
     }
-    return false;
+    return null;
   }
 }
 
@@ -153,6 +183,20 @@ function normalizeSet(values: Iterable<string>): ReadonlySet<string> {
     set.add(normalized);
   }
   return set;
+}
+
+function normalizeCategories(
+  values: Record<string, number> | undefined,
+): ReadonlyMap<string, number> {
+  const categories = new Map<string, number>();
+  for (const [key, value] of Object.entries(values ?? {})) {
+    const normalized = normalizeDnsName(key);
+    if (normalized.length === 0 || normalized === ".") {
+      continue;
+    }
+    categories.set(normalized, Math.max(1, Math.min(127, value | 0)));
+  }
+  return categories;
 }
 
 function matches(set: ReadonlySet<string>, name: string): boolean {

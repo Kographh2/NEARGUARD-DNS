@@ -24,11 +24,11 @@ const COMMON_PASSWORDS = new Set([
 export const nameSchema = z
   .string()
   .trim()
-  .min(1, "Name is required")
-  .max(80, "Name must be 80 characters or fewer")
+  .min(1, "Nama wajib diisi")
+  .max(80, "Nama maksimal 80 karakter")
   .refine(
     (value) => !/[\u0000-\u001f\u007f]/u.test(value),
-    "Name contains invalid characters",
+    "Nama mengandung karakter tidak valid",
   );
 
 export const usernameSchema = z
@@ -39,39 +39,39 @@ export const usernameSchema = z
       .string()
       .min(
         USERNAME_MIN_LENGTH,
-        `Username must be at least ${USERNAME_MIN_LENGTH} characters`,
+        `Username minimal ${USERNAME_MIN_LENGTH} karakter`,
       )
       .max(
         USERNAME_MAX_LENGTH,
-        `Username must be at most ${USERNAME_MAX_LENGTH} characters`,
+        `Username maksimal ${USERNAME_MAX_LENGTH} karakter`,
       )
       .regex(
         USERNAME_PATTERN,
-        "Use 3-20 lowercase letters, numbers, underscores, or hyphens; start with a letter",
+        "Gunakan 3-20 huruf kecil, angka, garis bawah, atau tanda hubung; diawali huruf",
       ),
   )
   .refine((value) => !isReservedUsername(value), {
-    message: "This username is reserved",
+    message: "Username ini dipakai route dan tidak bisa digunakan",
   });
 
 export const emailSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .max(254, "Email is too long")
-  .email("Enter a valid email address");
+  .max(254, "Email terlalu panjang")
+  .email("Masukkan alamat email yang valid");
 
 export const passwordSchema = z
   .string()
-  .min(12, "Password must be at least 12 characters")
-  .max(128, "Password must be at most 128 characters")
+  .min(12, "Kata sandi minimal 12 karakter")
+  .max(128, "Kata sandi maksimal 128 karakter")
   .refine(
     (value) => /[A-Za-z]/.test(value) && /[0-9]/.test(value),
-    "Use at least one letter and one number",
+    "Gunakan minimal satu huruf dan satu angka",
   )
   .refine(
     (value) => !COMMON_PASSWORDS.has(value.toLowerCase()),
-    "This password is too common",
+    "Kata sandi ini terlalu umum",
   );
 
 export const deviceLabelSchema = z
@@ -80,11 +80,11 @@ export const deviceLabelSchema = z
   .pipe(
     z
       .string()
-      .min(1, "Device label is required")
-      .max(40, "Device label must be 40 characters or fewer")
+      .min(1, "Label perangkat wajib diisi")
+      .max(40, "Label perangkat maksimal 40 karakter")
       .regex(
         DEVICE_LABEL_PATTERN,
-        "Use lowercase letters, numbers, underscores, or hyphens",
+        "Gunakan huruf kecil, angka, garis bawah, atau tanda hubung",
       ),
   );
 
@@ -98,12 +98,12 @@ export const registerSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
-    message: "Passwords do not match",
+    message: "Kata sandi tidak sama",
   });
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Password is required").max(128),
+  password: z.string().min(1, "Kata sandi wajib diisi").max(128),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -117,12 +117,12 @@ export const resetPasswordSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
-    message: "Passwords do not match",
+    message: "Kata sandi tidak sama",
   });
 
 export const adminPinSchema = z
   .string()
-  .regex(/^\d{8}$/, "PIN must be exactly 8 digits");
+  .regex(/^\d{8}$/, "PIN harus tepat 8 digit");
 
 export const domainSchema = z
   .string()
@@ -131,11 +131,11 @@ export const domainSchema = z
   .pipe(
     z
       .string()
-      .min(4, "Domain is too short")
-      .max(253, "Domain is too long")
+      .min(4, "Domain terlalu pendek")
+      .max(253, "Domain terlalu panjang")
       .regex(
         /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/,
-        "Enter a valid domain name",
+        "Masukkan nama domain yang valid",
       ),
   );
 
@@ -145,10 +145,10 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export function firstValidationMessage(error: z.ZodError): string {
   const issue = error.issues[0];
   if (!issue) {
-    return "Check the form and try again.";
+    return "Periksa formulir dan coba lagi.";
   }
   if (issue.code === "invalid_type") {
-    return "Fill in all required fields and try again.";
+    return "Isi semua kolom wajib dan coba lagi.";
   }
   return issue.message;
 }
@@ -174,7 +174,7 @@ export function passwordStrength(value: string): {
   label: string;
 } {
   if (!value) {
-    return { score: 0, label: "Empty" };
+    return { score: 0, label: "Kosong" };
   }
   let score = 0;
   if (value.length >= 12) score += 1;
@@ -182,6 +182,6 @@ export function passwordStrength(value: string): {
   if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score += 1;
   if (/[0-9]/.test(value) && /[^A-Za-z0-9]/.test(value)) score += 1;
   const clamped = Math.min(4, score) as 0 | 1 | 2 | 3 | 4;
-  const labels = ["Very weak", "Weak", "Fair", "Good", "Strong"] as const;
+  const labels = ["Sangat lemah", "Lemah", "Cukup", "Baik", "Kuat"] as const;
   return { score: clamped, label: labels[clamped] };
 }

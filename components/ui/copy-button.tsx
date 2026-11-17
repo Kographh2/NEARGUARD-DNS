@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export function CopyButton({
   value,
-  label = "Copy",
+  label = "Salin",
   className = "btn-secondary",
 }: {
   value: string;
@@ -35,10 +35,10 @@ export function CopyButton({
       type="button"
       onClick={handleCopy}
       className={className}
-      aria-label={copied ? "Copied" : label}
+      aria-label={copied ? "Tersalin" : label}
       aria-live="polite"
     >
-      {copied ? "Copied" : label}
+      {copied ? "Tersalin" : label}
     </button>
   );
 }

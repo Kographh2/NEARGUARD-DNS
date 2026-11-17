@@ -1,80 +1,69 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { APP_VERSION_DISPLAY } from "@/lib/version";
+
 export const metadata: Metadata = {
   title: "Admin",
-  description: "NEAR ADGUARD administration console.",
+  description: "Konsol administrasi NEAR ADGUARD.",
   robots: { index: false, follow: false },
 };
 
 export default function AdminPage() {
   return (
-    <div className="container-page py-14 sm:py-20">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">
-            Restricted
-          </p>
-          <h1 className="section-title mt-3">Admin console</h1>
-          <p className="section-copy">
-            User, device, rate-limit, blocklist, and security administration.
-            Every IP reveal is PIN-gated and audited.
-          </p>
-        </div>
-        <Link href="/login" className="btn-secondary no-underline">
-          Admin sign in
-        </Link>
-      </div>
+    <div className="container-page py-10 sm:py-14">
+      <header className="max-w-[65ch]">
+        <h1 className="section-title">Konsol admin</h1>
+        <p className="section-copy">
+          Halaman ini belum tersambung ke data pengguna, perangkat, rate limit,
+          atau blocklist. Akses admin dan reveal IP belum aktif di versi ini.
+        </p>
+        <p className="mt-4">
+          <Link href="/login" className="btn-secondary">
+            Masuk sebagai admin
+          </Link>
+        </p>
+      </header>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: "Users", value: "—" },
-          { label: "Devices", value: "—" },
-          { label: "Requests today", value: "—" },
-          { label: "Blocked today", value: "—" },
-        ].map((stat) => (
-          <div key={stat.label} className="card">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
-              {stat.label}
-            </p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-white">
-              {stat.value}
-            </p>
-          </div>
-        ))}
-      </div>
+      <section className="mt-8 max-w-3xl">
+        <h2 className="text-lg font-semibold">Status</h2>
+        <table className="data-table mt-3">
+          <thead>
+            <tr>
+              <th>Bagian</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["Pengguna dan role", "Belum tersambung"],
+              ["Perangkat", "Belum tersambung"],
+              ["Rate limit", "Belum tersambung"],
+              ["Blocklist", "Dibaca dari artifact build"],
+              ["IP vault", "Skema ada, reveal belum aktif"],
+            ].map(([label, value]) => (
+              <tr key={label}>
+                <td>{label}</td>
+                <td className="muted">{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <section className="card">
-          <h2 className="text-base font-semibold text-white">Users and roles</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
-            Promote or demote administrators, suspend accounts, and inspect
-            per-user device counts and rate-limit usage.
-          </p>
-        </section>
-        <section className="card border-amber-300/15 bg-amber-300/[0.03]">
-          <h2 className="text-base font-semibold text-white">IP vault</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
-            Real IPs are encrypted at rest. The default view shows rotating
-            decoy IPs. Revealing a real IP requires the admin PIN, a short-lived
-            session, and an audit entry.
-          </p>
-        </section>
-        <section className="card">
-          <h2 className="text-base font-semibold text-white">Rate limits</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
-            Edit free, registered, per-device, per-IP guard, unknown-username,
-            and new-device thresholds. Changes are validated and audited.
-          </p>
-        </section>
-        <section className="card">
-          <h2 className="text-base font-semibold text-white">Blocklist</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
-            Inspect source counts, add allowlist overrides, and review the
-            latest rebuild. The DNS hot path reads only the generated artifact.
-          </p>
-        </section>
-      </div>
+      <section className="mt-8 max-w-[65ch]">
+        <h2 className="text-lg font-semibold">Catatan keamanan</h2>
+        <p className="small muted mt-2">
+          Tabel server-only dicabut dari anon dan authenticated. Reveal IP asli
+          membutuhkan PIN, sesi singkat, dan audit. Fitur itu belum dibuat di
+          kode aplikasi.
+        </p>
+      </section>
+
+      <p className="small muted mt-10">
+        NEAR ADGUARD {APP_VERSION_DISPLAY} ·{" "}
+        <Link href="/changelog">Changelog</Link>
+      </p>
     </div>
   );
 }

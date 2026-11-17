@@ -93,6 +93,16 @@ describe("parseBlocklistText", () => {
       "tracker.net",
     ]);
   });
+
+  it("parses a JSON blacklist", () => {
+    const text = JSON.stringify({
+      blacklist: ["ads.example.com", "||bad.example^", 42],
+    });
+    expect(parseBlocklistText(text, "json-blacklist")).toEqual([
+      "ads.example.com",
+      "bad.example",
+    ]);
+  });
 });
 
 describe("isAllowlistedDomain", () => {

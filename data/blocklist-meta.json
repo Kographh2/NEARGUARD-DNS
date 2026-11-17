@@ -1,36 +1,114 @@
 {
-  "format": "nearguard-blocklist-v1",
+  "format": "nearguard-blocklist-v2",
   "hash": "sha256-truncated-64-bit",
   "hashBytes": 8,
-  "generatedAt": "2026-11-17T12:03:29.479Z",
+  "entryBytes": 9,
+  "generatedAt": "2026-11-17T17:55:31.171Z",
   "sources": [
     {
       "name": "HaGeZi Multi NORMAL",
       "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/multi.txt",
       "status": "ok",
       "bytes": 4071152,
-      "entries": 185098
+      "entries": 185098,
+      "categories": [
+        "ads",
+        "trackers"
+      ],
+      "license": "GPL-3.0"
     },
     {
       "name": "OISD Big",
       "url": "https://cdn.jsdelivr.net/gh/sjhgvr/oisd@main/domainswild2_big.txt",
       "status": "ok",
       "bytes": 4464321,
-      "entries": 228369
+      "entries": 228369,
+      "categories": [
+        "ads",
+        "trackers"
+      ],
+      "license": "See source"
     },
     {
       "name": "StevenBlack Unified",
       "url": "https://cdn.jsdelivr.net/gh/StevenBlack/hosts@master/hosts",
       "status": "ok",
       "bytes": 2328985,
-      "entries": 76103
+      "entries": 76103,
+      "categories": [
+        "ads",
+        "trackers"
+      ],
+      "license": "MIT"
     },
     {
       "name": "Phishing Army Extended",
       "url": "https://phishing.army/download/phishing_army_blocklist_extended.txt",
       "status": "ok",
-      "bytes": 3129101,
-      "entries": 144548
+      "bytes": 3142484,
+      "entries": 145088,
+      "categories": [
+        "phishing"
+      ],
+      "license": "See source"
+    },
+    {
+      "name": "HaGeZi Fake",
+      "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/fake.txt",
+      "status": "ok",
+      "bytes": 361299,
+      "entries": 18814,
+      "categories": [
+        "scam"
+      ],
+      "license": "GPL-3.0"
+    },
+    {
+      "name": "The Block List Project Scam",
+      "url": "https://cdn.jsdelivr.net/gh/blocklistproject/Lists@master/scam.txt",
+      "status": "ok",
+      "bytes": 223675,
+      "entries": 8527,
+      "categories": [
+        "scam"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "MetaMask Crypto Phishing",
+      "url": "https://cdn.jsdelivr.net/gh/MetaMask/eth-phishing-detect@master/src/config.json",
+      "status": "ok",
+      "bytes": 5263812,
+      "entries": 198052,
+      "categories": [
+        "cryptoScam"
+      ],
+      "license": "See source"
+    },
+    {
+      "name": "StevenBlack Gambling",
+      "url": "https://cdn.jsdelivr.net/gh/StevenBlack/hosts@master/alternates/gambling-only/hosts",
+      "status": "ok",
+      "bytes": 149253,
+      "entries": 6744,
+      "categories": [
+        "gambling"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "HaGeZi Threat Intelligence Mini",
+      "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/tif.mini.txt",
+      "status": "ok",
+      "bytes": 3649639,
+      "entries": 182368,
+      "categories": [
+        "malware",
+        "phishing",
+        "scam",
+        "cryptoScam"
+      ],
+      "license": "GPL-3.0"
     },
     {
       "name": "URLhaus",
@@ -38,6 +116,10 @@
       "status": "skipped",
       "bytes": 0,
       "entries": 0,
+      "categories": [
+        "malware"
+      ],
+      "license": "See source",
       "note": "URLHAUS_API_KEY not set"
     }
   ],
@@ -45,14 +127,23 @@
     "file": "data/blocklist-allowlist.json",
     "count": 10
   },
+  "categoryCounts": {
+    "ads": 377267,
+    "trackers": 377267,
+    "malware": 182363,
+    "phishing": 262608,
+    "scam": 190508,
+    "cryptoScam": 376371,
+    "gambling": 6744
+  },
   "totals": {
-    "parsedEntries": 634118,
-    "uniqueDomains": 443469,
-    "allowlisted": 2376,
-    "blockedDomains": 441093,
-    "hashes": 441093,
+    "parsedEntries": 1049163,
+    "uniqueDomains": 673093,
+    "allowlisted": 5782,
+    "blockedDomains": 667311,
+    "hashes": 667311,
     "collisions": 0,
-    "binBytes": 3528744,
-    "binSha256": "bf595ee0ce33b5d3cb749ade7af2f716c8458bcecb149f0d4761cae6684b994d"
+    "binBytes": 6005799,
+    "binSha256": "70e6c01a17abb5b6f27c6b73a949c5d6b4719dbbd588663468619601c666d44e"
   }
 }

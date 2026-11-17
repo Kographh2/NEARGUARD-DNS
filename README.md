@@ -98,44 +98,51 @@ traffic and are subject to the strict unknown-username limit.
 | `POST /api/auth/login` | Sign in with Turnstile verification |
 
 **Hot-path rule:** the DNS request path never awaits Supabase. Tier lookups use
-an in-memory cache; misses refresh in the background. Counters are buffered and
-flushed after the response with one RPC.
+an in-memory cache, but production cache population is not wired yet. Events are
+buffered in memory; the Supabase event sink is not wired yet.
 
 ### Blocklist pipeline
 
 The runtime blocklist is a compact binary artifact, not a list of domain
 strings:
 
-- `data/blocklist.bin` — sorted 8-byte SHA-256 truncated hashes, one per blocked
-  domain, searched with binary search.
+- `data/blocklist.bin` — sorted 9-byte entries: an 8-byte SHA-256 truncated hash
+  plus one category bitmask byte, searched with binary search.
 - `data/blocklist-allowlist.json` — exact and parent-suffix allowlist entries.
-- `data/blocklist-meta.json` — source status, counts, collision count, artifact
-  size, and SHA-256 of the generated binary.
+- `data/blocklist-meta.json` — source status, counts, category counts, collision
+  count, artifact size, and SHA-256 of the generated binary.
 
 `lib/dns/blocklist.ts` loads the binary artifact first and falls back to
 `data/blocklist.json` or an empty blocklist. The matcher checks the exact name
 and each parent suffix, so blocking `example.com` also blocks
 `sub.example.com`; a bare TLD is never blocked. The allowlist overrides both
-exact and parent matches.
+exact and parent matches. `match()` returns the category mask so the handler can
+apply the free or registered category preference.
 
 Sources are fetched by `npm run blocklist:build`:
 
-| Source | Format | URL |
-|---|---|---|
-| HaGeZi Multi NORMAL | wildcard domains | `https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/multi.txt` |
-| OISD Big | domains | `https://cdn.jsdelivr.net/gh/sjhgvr/oisd@main/domainswild2_big.txt` |
-| StevenBlack Unified | hosts | `https://cdn.jsdelivr.net/gh/StevenBlack/hosts@master/hosts` |
-| Phishing Army Extended | domains | `https://phishing.army/download/phishing_army_blocklist_extended.txt` |
-| URLhaus | hosts | Optional; requires `URLHAUS_API_KEY` |
+| Source | Format | Categories | License |
+|---|---|---|---|
+| HaGeZi Multi NORMAL | wildcard domains | ads, trackers | GPL-3.0 |
+| OISD Big | domains | ads, trackers | See source |
+| StevenBlack Unified | hosts | ads, trackers | MIT |
+| Phishing Army Extended | domains | phishing | See source |
+| HaGeZi Fake | domains | scam | GPL-3.0 |
+| The Block List Project Scam | domains | scam | MIT |
+| MetaMask Crypto Phishing | JSON blacklist | cryptoScam | See source |
+| StevenBlack Gambling | hosts | gambling | MIT |
+| HaGeZi Threat Intelligence Mini | domains | malware, phishing, scam, cryptoScam | GPL-3.0 |
+| URLhaus | hosts | malware | Optional; requires `URLHAUS_API_KEY` |
 
 URLhaus retired its keyless hostfile download on 21 October 2026 and now
 returns `410 Gone`. The builder skips it unless `URLHAUS_API_KEY` is set. The
 daily GitHub Action rebuilds the artifact and commits it; required source
 failures fail the build unless a cached download exists in `data/raw/`.
 
-The 64-bit truncated hashes are not reversible domain storage. At ~480k entries
-the chance of a false positive from a collision is negligible, but it is still a
-probabilistic filter; the build reports collisions in the metadata. See
+The 64-bit truncated hashes are not reversible domain storage. The current build
+has ~667k blocked domains and reports zero collisions, but it is still a
+probabilistic filter; the build reports collisions in the metadata. Category
+counts overlap because one domain can carry several bits. See
 [`docs/phase-3-blocklist.md`](docs/phase-3-blocklist.md) for source verification,
 current counts, and benchmark results.
 

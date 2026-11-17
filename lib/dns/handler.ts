@@ -11,6 +11,7 @@ import { flushEvents, recordEvent, type EventTier } from "@/lib/events";
 import { getClientIp, rateLimiter } from "@/lib/ratelimit";
 import { resolveTier, type TierInfo } from "@/lib/tiers";
 import { getBlocklist } from "@/lib/dns/blocklist";
+import { DEFAULT_CATEGORIES } from "@/lib/dns/categories";
 import { toArrayBuffer } from "@/lib/dns/bytes";
 import { queryUpstream } from "@/lib/dns/upstream";
 import {
@@ -120,7 +121,12 @@ export async function handleDohRequest(
     );
   }
 
-  if (getBlocklist().isBlocked(query.question.name)) {
+  const category = getBlocklist().match(query.question.name);
+  const categories =
+    resolved.tier === "registered"
+      ? resolved.info?.categories ?? DEFAULT_CATEGORIES
+      : DEFAULT_CATEGORIES;
+  if (category !== null && (category & categories) !== 0) {
     recordEvent({
       tier: resolved.tier,
       userId: resolved.info?.userId,
@@ -130,6 +136,7 @@ export async function handleDohRequest(
           ? query.question.name
           : undefined,
       qtype: query.question.type,
+      category,
       blocked: true,
       rateLimited: false,
       at: Date.now(),

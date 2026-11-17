@@ -6,8 +6,8 @@ import { TurnstileWidget } from "@/components/ui/turnstile-widget";
 import { publicEnv } from "@/lib/public-env";
 
 export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in to your NEAR ADGUARD account.",
+  title: "Masuk",
+  description: "Masuk ke akun NEAR ADGUARD.",
 };
 
 export default async function LoginPage({
@@ -30,46 +30,31 @@ export default async function LoginPage({
     "1";
 
   return (
-    <div className="card">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-        Welcome back
-      </p>
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight text-white">
-        Sign in to NEAR ADGUARD
-      </h1>
-      <p className="mt-2 text-sm leading-6 text-slate-400">
-        Access your personal DoH URL, blocked-domain dashboard, and device
-        labels.
+    <div className="panel">
+      <h1 className="section-title">Masuk</h1>
+      <p className="section-copy">
+        Masuk untuk membuka URL DoH pribadi dan dashboard.
       </p>
 
       {registered ? (
-        <p
-          role="status"
-          className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-400/5 px-3 py-2 text-sm text-emerald-200"
-        >
-          Account created. Check your email to confirm, then sign in.
+        <p role="status" className="notice notice-success mt-4">
+          Akun dibuat. Periksa email untuk konfirmasi, lalu masuk.
         </p>
       ) : null}
 
       {confirmed ? (
-        <p
-          role="status"
-          className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-400/5 px-3 py-2 text-sm text-emerald-200"
-        >
-          Email confirmed. Sign in to continue.
+        <p role="status" className="notice notice-success mt-4">
+          Email sudah dikonfirmasi. Masuk untuk melanjutkan.
         </p>
       ) : null}
 
       {error ? (
-        <p
-          role="alert"
-          className="mt-4 rounded-xl border border-red-400/20 bg-red-400/5 px-3 py-2 text-sm text-red-200"
-        >
+        <p role="alert" className="notice notice-error mt-4">
           {error.slice(0, 240)}
         </p>
       ) : null}
 
-      <form action="/api/auth/login" method="post" className="mt-7 space-y-4">
+      <form action="/api/auth/login" method="post" className="mt-6 space-y-4">
         <div>
           <label htmlFor="email" className="label">
             Email
@@ -81,41 +66,30 @@ export default async function LoginPage({
             autoComplete="email"
             required
             className="input"
-            placeholder="you@example.com"
+            placeholder="nama@contoh.com"
           />
         </div>
 
         <PasswordField
           name="password"
-          label="Password"
+          label="Kata sandi"
           autoComplete="current-password"
-          placeholder="Your password"
+          placeholder="Kata sandi kamu"
         />
 
-        <div className="flex items-center justify-between gap-4 text-sm">
-          <Link
-            href="/forgot-password"
-            className="text-emerald-300 no-underline hover:text-emerald-200"
-          >
-            Forgot password?
-          </Link>
-        </div>
+        <p className="small">
+          <Link href="/forgot-password">Lupa kata sandi?</Link>
+        </p>
 
         <TurnstileWidget siteKey={publicEnv.turnstileSiteKey} action="login" />
 
         <button type="submit" className="btn-primary w-full">
-          Sign in
+          Masuk
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-400">
-        New here?{" "}
-        <Link
-          href="/register"
-          className="font-medium text-emerald-300 no-underline hover:text-emerald-200"
-        >
-          Create an account
-        </Link>
+      <p className="small mt-5">
+        Belum punya akun? <Link href="/register">Buat akun</Link>.
       </p>
     </div>
   );

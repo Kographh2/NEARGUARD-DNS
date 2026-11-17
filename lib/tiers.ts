@@ -8,6 +8,7 @@ export interface TierInfo {
   userId: string;
   status: AccountStatus;
   logBlocked: boolean;
+  categories: number;
 }
 
 interface CacheEntry {

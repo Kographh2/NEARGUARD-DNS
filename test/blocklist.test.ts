@@ -5,20 +5,34 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  BLOCKLIST_ENTRY_BYTES,
   BLOCKLIST_HASH_BYTES,
   Blocklist,
   HashedBlocklist,
   hashDomain,
   loadBlocklistFromDirectory,
 } from "@/lib/dns/blocklist";
+import { BLOCK_CATEGORIES } from "@/lib/dns/categories";
 
-function buildArtifact(domains: string[]): Uint8Array {
-  const hashes = domains
-    .map((domain) => hashDomain(domain))
-    .sort((left, right) => Buffer.compare(Buffer.from(left), Buffer.from(right)));
-  const artifact = new Uint8Array(hashes.length * BLOCKLIST_HASH_BYTES);
-  hashes.forEach((hash, index) => {
-    artifact.set(hash, index * BLOCKLIST_HASH_BYTES);
+function buildArtifact(
+  domains: Array<string | { domain: string; categories: number }>,
+): Uint8Array {
+  const entries = domains
+    .map((entry) => {
+      const domain = typeof entry === "string" ? entry : entry.domain;
+      return {
+        hash: hashDomain(domain),
+        categories: typeof entry === "string" ? 1 : entry.categories,
+      };
+    })
+    .sort((left, right) =>
+      Buffer.compare(Buffer.from(left.hash), Buffer.from(right.hash)),
+    );
+  const artifact = new Uint8Array(entries.length * BLOCKLIST_ENTRY_BYTES);
+  entries.forEach((entry, index) => {
+    const offset = index * BLOCKLIST_ENTRY_BYTES;
+    artifact.set(entry.hash, offset);
+    artifact[offset + BLOCKLIST_HASH_BYTES] = entry.categories;
   });
   return artifact;
 }
@@ -32,6 +46,10 @@ describe("Blocklist", () => {
       "singlelabel",
     ],
     allowed: ["safe.example.com", "allow.example.org"],
+    categories: {
+      "ads.example.com": BLOCK_CATEGORIES.ads,
+      "tracker.net": BLOCK_CATEGORIES.trackers,
+    },
   });
 
   it("matches exact domains", () => {
@@ -42,6 +60,12 @@ describe("Blocklist", () => {
   it("matches parent domains", () => {
     expect(blocklist.isBlocked("sub.ads.example.com")).toBe(true);
     expect(blocklist.isBlocked("a.b.tracker.net")).toBe(true);
+  });
+
+  it("returns category bits for matched domains", () => {
+    expect(blocklist.match("ads.example.com")).toBe(BLOCK_CATEGORIES.ads);
+    expect(blocklist.match("tracker.net")).toBe(BLOCK_CATEGORIES.trackers);
+    expect(blocklist.match("example.org")).toBe(1);
   });
 
   it("does not block unrelated domains", () => {
@@ -81,7 +105,11 @@ describe("Blocklist", () => {
 
 describe("HashedBlocklist", () => {
   const blocklist = new HashedBlocklist(
-    buildArtifact(["ads.example.com", "tracker.net", "example.org"]),
+    buildArtifact([
+      { domain: "ads.example.com", categories: BLOCK_CATEGORIES.ads },
+      { domain: "tracker.net", categories: BLOCK_CATEGORIES.trackers },
+      { domain: "example.org", categories: BLOCK_CATEGORIES.phishing },
+    ]),
     ["safe.example.com", "allow.example.org"],
   );
 
@@ -93,6 +121,13 @@ describe("HashedBlocklist", () => {
   it("matches parent domains", () => {
     expect(blocklist.isBlocked("sub.ads.example.com")).toBe(true);
     expect(blocklist.isBlocked("a.b.tracker.net")).toBe(true);
+  });
+
+  it("returns category bits for matched domains", () => {
+    expect(blocklist.match("ads.example.com")).toBe(BLOCK_CATEGORIES.ads);
+    expect(blocklist.match("tracker.net")).toBe(BLOCK_CATEGORIES.trackers);
+    expect(blocklist.match("example.org")).toBe(BLOCK_CATEGORIES.phishing);
+    expect(blocklist.match("example.com")).toBeNull();
   });
 
   it("does not block unrelated domains", () => {
@@ -122,7 +157,7 @@ describe("HashedBlocklist", () => {
 
   it("rejects a corrupt artifact length", () => {
     expect(() => new HashedBlocklist(new Uint8Array(7))).toThrow(
-      /multiple of 8 bytes/u,
+      /multiple of 9 bytes/u,
     );
   });
 

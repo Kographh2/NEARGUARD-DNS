@@ -13,6 +13,7 @@ const activeUser: TierInfo = {
   userId: "user-1",
   status: "active",
   logBlocked: true,
+  categories: 63,
 };
 
 describe("tier cache", () => {

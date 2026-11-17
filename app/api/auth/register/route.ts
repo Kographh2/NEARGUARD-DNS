@@ -31,7 +31,7 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json(
         {
           error:
-            "Authentication is not configured on this deployment. Check the server environment variables.",
+            "Autentikasi belum dikonfigurasi di deployment ini. Periksa variabel lingkungan server.",
         },
         { status: 500 },
       );
@@ -46,7 +46,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/register",
-      "Submit the registration form from this site and try again.",
+      "Kirim formulir pendaftaran dari situs ini lalu coba lagi.",
     );
   }
 
@@ -71,7 +71,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/register",
-      "Complete the bot verification and try again.",
+      "Selesaikan verifikasi bot lalu coba lagi.",
     );
   }
 
@@ -87,7 +87,7 @@ export async function POST(request: Request): Promise<Response> {
       `Register username check failed: ${existingError.code ?? "unknown"}`,
     );
     return NextResponse.json(
-      { error: "Registration is temporarily unavailable. Try again later." },
+      { error: "Pendaftaran sementara tidak tersedia. Coba lagi nanti." },
       { status: 500 },
     );
   }
@@ -96,7 +96,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/register",
-      "That username is already taken.",
+      "Username itu sudah dipakai.",
     );
   }
 
@@ -117,7 +117,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/register",
-      "Could not create the account. If you already have one, sign in instead.",
+      "Akun tidak bisa dibuat. Jika sudah punya akun, masuk.",
     );
   }
 
@@ -125,7 +125,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/register",
-      "Could not create the account. Try again.",
+      "Akun tidak bisa dibuat. Coba lagi.",
     );
   }
 
@@ -133,7 +133,7 @@ export async function POST(request: Request): Promise<Response> {
     return redirectWithError(
       request,
       "/login",
-      "An account with this email already exists. Sign in instead.",
+      "Akun dengan email ini sudah ada. Masuk.",
     );
   }
 
@@ -153,7 +153,7 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json(
       {
         error:
-          "The account was created, but the profile could not be set up. Contact support.",
+          "Akun dibuat, tetapi profil gagal disiapkan. Hubungi dukungan.",
       },
       { status: 500 },
     );

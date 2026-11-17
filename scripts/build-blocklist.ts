@@ -8,10 +8,16 @@ import {
 import { join } from "node:path";
 
 import {
+  BLOCKLIST_ENTRY_BYTES,
   BLOCKLIST_HASH_BYTES,
   DEFAULT_ALLOWLIST,
   hashDomain,
 } from "@/lib/dns/blocklist";
+import {
+  BLOCK_CATEGORIES,
+  CATEGORY_ORDER,
+  type BlockCategory,
+} from "@/lib/dns/categories";
 import {
   compareHashes,
   isAllowlistedDomain,
@@ -32,6 +38,8 @@ interface Source {
   url: string;
   publicUrl?: string;
   format: BlocklistSourceFormat;
+  categories: readonly BlockCategory[];
+  license?: string;
   optional?: boolean;
   requiresEnv?: string;
 }
@@ -42,6 +50,8 @@ interface SourceResult {
   status: "ok" | "cached" | "skipped";
   bytes: number;
   entries: number;
+  categories: readonly BlockCategory[];
+  license?: string;
   note?: string;
 }
 
@@ -62,24 +72,72 @@ const SOURCES: Source[] = [
     slug: "hagezi-multi",
     url: "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/multi.txt",
     format: "auto",
+    categories: ["ads", "trackers"],
+    license: "GPL-3.0",
   },
   {
     name: "OISD Big",
     slug: "oisd-big",
     url: "https://cdn.jsdelivr.net/gh/sjhgvr/oisd@main/domainswild2_big.txt",
     format: "domains",
+    categories: ["ads", "trackers"],
+    license: "See source",
   },
   {
     name: "StevenBlack Unified",
     slug: "stevenblack-unified",
     url: "https://cdn.jsdelivr.net/gh/StevenBlack/hosts@master/hosts",
     format: "hosts",
+    categories: ["ads", "trackers"],
+    license: "MIT",
   },
   {
     name: "Phishing Army Extended",
     slug: "phishing-army",
     url: "https://phishing.army/download/phishing_army_blocklist_extended.txt",
     format: "domains",
+    categories: ["phishing"],
+    license: "See source",
+  },
+  {
+    name: "HaGeZi Fake",
+    slug: "hagezi-fake",
+    url: "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/fake.txt",
+    format: "auto",
+    categories: ["scam"],
+    license: "GPL-3.0",
+  },
+  {
+    name: "The Block List Project Scam",
+    slug: "blocklistproject-scam",
+    url: "https://cdn.jsdelivr.net/gh/blocklistproject/Lists@master/scam.txt",
+    format: "hosts",
+    categories: ["scam"],
+    license: "MIT",
+  },
+  {
+    name: "MetaMask Crypto Phishing",
+    slug: "metamask-crypto-phishing",
+    url: "https://cdn.jsdelivr.net/gh/MetaMask/eth-phishing-detect@master/src/config.json",
+    format: "json-blacklist",
+    categories: ["cryptoScam"],
+    license: "See source",
+  },
+  {
+    name: "StevenBlack Gambling",
+    slug: "stevenblack-gambling",
+    url: "https://cdn.jsdelivr.net/gh/StevenBlack/hosts@master/alternates/gambling-only/hosts",
+    format: "hosts",
+    categories: ["gambling"],
+    license: "MIT",
+  },
+  {
+    name: "HaGeZi Threat Intelligence Mini",
+    slug: "hagezi-tif-mini",
+    url: "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/tif.mini.txt",
+    format: "auto",
+    categories: ["malware", "phishing", "scam", "cryptoScam"],
+    license: "GPL-3.0",
   },
   {
     name: "URLhaus",
@@ -89,6 +147,8 @@ const SOURCES: Source[] = [
       : URLHAUS_PUBLIC_URL,
     publicUrl: URLHAUS_PUBLIC_URL,
     format: "hosts",
+    categories: ["malware"],
+    license: "See source",
     optional: true,
     requiresEnv: "URLHAUS_API_KEY",
   },
@@ -99,12 +159,16 @@ async function main(): Promise<void> {
 
   const allowlist = loadAllowlist();
   const allowedSet = new Set(allowlist);
-  const unique = new Set<string>();
+  const unique = new Map<string, number>();
   const sourceResults: SourceResult[] = [];
   let parsedEntries = 0;
 
   for (const source of SOURCES) {
     const loaded = await loadSource(source);
+    const sourceMask = source.categories.reduce(
+      (mask, category) => mask | BLOCK_CATEGORIES[category],
+      0,
+    );
     if (loaded.status === "skipped") {
       sourceResults.push({
         name: source.name,
@@ -112,6 +176,8 @@ async function main(): Promise<void> {
         status: "skipped",
         bytes: 0,
         entries: 0,
+        categories: source.categories,
+        license: source.license,
         note: loaded.note,
       });
       continue;
@@ -120,7 +186,7 @@ async function main(): Promise<void> {
     const domains = parseBlocklistText(loaded.text, source.format);
     parsedEntries += domains.length;
     for (const domain of domains) {
-      unique.add(domain);
+      unique.set(domain, (unique.get(domain) ?? 0) | sourceMask);
     }
 
     sourceResults.push({
@@ -129,42 +195,64 @@ async function main(): Promise<void> {
       status: loaded.status,
       bytes: loaded.bytes,
       entries: domains.length,
+      categories: source.categories,
+      license: source.license,
       note: loaded.note,
     });
   }
 
-  const blocked: string[] = [];
+  const blocked: Array<{ domain: string; categories: number }> = [];
   let allowlisted = 0;
-  for (const domain of unique) {
+  for (const [domain, categories] of unique) {
     if (isAllowlistedDomain(domain, allowedSet)) {
       allowlisted += 1;
     } else {
-      blocked.push(domain);
+      blocked.push({ domain, categories: categories || 1 });
     }
   }
 
-  const entries = blocked.map((domain) => ({
-    domain,
-    hash: hashDomain(domain),
+  const entries = blocked.map((entry) => ({
+    ...entry,
+    hash: hashDomain(entry.domain),
   }));
   entries.sort((left, right) => compareHashes(left.hash, right.hash));
 
-  const hashes = new Uint8Array(entries.length * BLOCKLIST_HASH_BYTES);
+  const hashes = new Uint8Array(entries.length * BLOCKLIST_ENTRY_BYTES);
   let collisions = 0;
   let hashCount = 0;
   let previous: Uint8Array | undefined;
 
   for (const entry of entries) {
     if (previous && compareHashes(previous, entry.hash) === 0) {
+      const previousOffset = (hashCount - 1) * BLOCKLIST_ENTRY_BYTES;
+      const merged =
+        (hashes[previousOffset + BLOCKLIST_HASH_BYTES] ?? 0) |
+        entry.categories;
+      hashes[previousOffset + BLOCKLIST_HASH_BYTES] = merged & 127;
       collisions += 1;
       continue;
     }
-    hashes.set(entry.hash, hashCount * BLOCKLIST_HASH_BYTES);
+    const offset = hashCount * BLOCKLIST_ENTRY_BYTES;
+    hashes.set(entry.hash, offset);
+    hashes[offset + BLOCKLIST_HASH_BYTES] = entry.categories & 127;
     hashCount += 1;
     previous = entry.hash;
   }
 
-  const artifact = hashes.subarray(0, hashCount * BLOCKLIST_HASH_BYTES);
+  const artifact = hashes.subarray(0, hashCount * BLOCKLIST_ENTRY_BYTES);
+  const categoryCounts: Record<string, number> = {};
+  for (const category of CATEGORY_ORDER) {
+    const bit = BLOCK_CATEGORIES[category];
+    let count = 0;
+    for (let index = 0; index < hashCount; index += 1) {
+      const mask =
+        hashes[index * BLOCKLIST_ENTRY_BYTES + BLOCKLIST_HASH_BYTES] ?? 0;
+      if ((mask & bit) !== 0) {
+        count += 1;
+      }
+    }
+    categoryCounts[category] = count;
+  }
   const binSha256 = createHash("sha256").update(artifact).digest("hex");
   const generatedAt = new Date().toISOString();
 
@@ -177,15 +265,17 @@ async function main(): Promise<void> {
     META_PATH,
     `${JSON.stringify(
       {
-        format: "nearguard-blocklist-v1",
+        format: "nearguard-blocklist-v2",
         hash: "sha256-truncated-64-bit",
         hashBytes: BLOCKLIST_HASH_BYTES,
+        entryBytes: BLOCKLIST_ENTRY_BYTES,
         generatedAt,
         sources: sourceResults,
         allowlist: {
           file: "data/blocklist-allowlist.json",
           count: allowlist.length,
         },
+        categoryCounts,
         totals: {
           parsedEntries,
           uniqueDomains: unique.size,
@@ -283,12 +373,14 @@ async function loadSource(source: Source): Promise<LoadedSource> {
 
   if (existsSync(cachePath)) {
     const text = readFileSync(cachePath, "utf8");
-    return {
-      text,
-      bytes: Buffer.byteLength(text),
-      status: "cached",
-      note: "network unavailable; using cached download",
-    };
+    if (text.trim().length > 0) {
+      return {
+        text,
+        bytes: Buffer.byteLength(text),
+        status: "cached",
+        note: "network unavailable; using cached download",
+      };
+    }
   }
 
   if (source.optional) {

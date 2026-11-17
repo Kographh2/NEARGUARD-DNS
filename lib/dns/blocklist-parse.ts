@@ -1,4 +1,8 @@
-export type BlocklistSourceFormat = "auto" | "hosts" | "domains";
+export type BlocklistSourceFormat =
+  | "auto"
+  | "hosts"
+  | "domains"
+  | "json-blacklist";
 
 const HOSTS_LINE = /^(?:0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+/iu;
 const HOSTS_RECORD =
@@ -85,6 +89,10 @@ export function parseBlocklistText(
   text: string,
   format: BlocklistSourceFormat = "auto",
 ): string[] {
+  if (format === "json-blacklist") {
+    return parseJsonBlacklist(text);
+  }
+
   const domains: string[] = [];
   const lines = text.replace(/^\uFEFF/u, "").split(/\r?\n/u);
 
@@ -130,6 +138,36 @@ export function parseBlocklistText(
     }
   }
 
+  return domains;
+}
+
+function parseJsonBlacklist(text: string): string[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return [];
+  }
+
+  if (typeof parsed !== "object" || parsed === null) {
+    return [];
+  }
+
+  const blacklist = (parsed as { blacklist?: unknown }).blacklist;
+  if (!Array.isArray(blacklist)) {
+    return [];
+  }
+
+  const domains: string[] = [];
+  for (const value of blacklist) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    const domain = normalizeBlocklistDomain(value);
+    if (domain) {
+      domains.push(domain);
+    }
+  }
   return domains;
 }
 

@@ -4,131 +4,119 @@ import Link from "next/link";
 import { BRAND, DOMAIN, RETENTION_DEFAULTS } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Privacy policy",
+  title: "Privasi",
   description:
-    "How NEAR ADGUARD handles account data, DNS counters, blocked-domain events, and encrypted IP addresses.",
+    "Cara NEAR ADGUARD menangani data akun, penghitung DNS, event blokir, dan alamat IP terenkripsi.",
 };
 
 const sections = [
   {
-    title: "1. Who we are",
+    title: "1. Tentang layanan",
     body: [
-      `${BRAND} is a personal, non-commercial DNS-over-HTTPS filtering service at ${DOMAIN}. It is built for iPhone, iPad, and Mac. It is not a VPN, it does not inspect page content, and it does not support Android.`,
-      "This policy describes the data the service processes when you use the free DoH endpoint, create an account, install a DNS profile, or use the dashboard.",
+      `${BRAND} adalah layanan penyaring DNS-over-HTTPS untuk iPhone, iPad, dan Mac di ${DOMAIN}. Layanan ini bukan VPN, tidak membaca isi halaman, dan tidak mendukung Android.`,
+      "Kebijakan ini menjelaskan data yang diproses saat kamu memakai endpoint DoH gratis, membuat akun, memasang profil DNS, atau membuka dashboard.",
+      "Versi 1.5 belum menyambungkan semua tabel ke resolver. Bagian yang masih berupa skema atau belum aktif ditandai di bawah.",
     ],
   },
   {
-    title: "2. Data we process",
+    title: "2. Data akun",
     body: [
-      "Account data: name, username, email address, password hash, role, account status, blocked-domain logging preference, and timestamps.",
-      "Device metadata: device label, a keyed hash of the device identifier, user-agent family, country, first-seen and last-seen times, and request counters. Free clients are represented by aggregate counters, not per-device labels.",
-      "Usage counters: daily requests, blocked requests, rate-limited requests, bytes, and country. These are aggregated and do not contain allowed query names.",
-      "Blocked-domain events: only for registered users who enable blocked-domain logging. Events contain the blocked domain, device label, timestamp, and decision reason. They are capped and purged automatically.",
-      "Encrypted IP addresses: stored as AES-256-GCM ciphertext in a separate table. They are used for abuse investigation and are visible to administrators only after PIN verification, with an audit log.",
-      "Authentication data: session cookies, password-reset tokens (hashed), and security audit entries.",
-      "Platform logs: Vercel and Supabase may process request metadata, error logs, and infrastructure logs under their own policies. These logs are outside the application's direct control and have short retention on the free plans.",
+      "Saat mendaftar, Supabase Auth memproses nama, username, email, kata sandi, dan waktu pembuatan akun. Aplikasi tidak menyimpan kata sandi mentah.",
+      "Profil menyimpan nama, username, peran, status, preferensi log domain diblokir, kategori blokir, dan timestamp. Kolom kategori dan preferensi log sudah ada di skema, tetapi resolver belum memuatnya per akun.",
+      "Supabase Auth mengirim email konfirmasi dan email autentikasi lain sesuai konfigurasi proyek.",
     ],
   },
   {
-    title: "3. What we do not store",
+    title: "3. Data DNS",
     body: [
-      "We do not store the names of allowed DNS queries. The DNS hot path records counters, not query names.",
-      "We do not store full URLs, page content, search terms, or traffic payloads. DNS filtering cannot see them.",
-      "We do not sell data, run advertising, or use third-party analytics on this site.",
+      "Nama domain yang diizinkan tidak disimpan. Hot path DNS hanya membuat event di memori untuk penghitung dan tidak menulis nama domain yang diizinkan ke database.",
+      "Saat ini belum ada event sink yang tersambung, jadi resolver tidak menulis penghitung harian atau event blokir ke database. Skema untuk penghitung, event blokir, dan kategori sudah disiapkan untuk tahap berikutnya.",
+      "Saat event sink aktif nanti, event blokir hanya disimpan untuk akun terdaftar yang mengaktifkan log domain diblokir. Event berisi domain yang diblokir, label perangkat, waktu, dan kategori.",
+      "Kami tidak menyimpan URL lengkap, isi halaman, istilah pencarian, atau payload lalu lintas. DNS filtering tidak bisa melihat data itu.",
     ],
   },
   {
-    title: "4. Upstream resolvers",
+    title: "4. Alamat IP",
     body: [
-      "Allowed queries are forwarded to Cloudflare's DoH resolver, with Google's DoH resolver as a fallback. Those providers receive the domain being resolved and the network metadata needed to answer the query. Their own privacy policies apply.",
-      "Blocked queries are answered locally and are not forwarded upstream.",
+      "Tabel alamat IP terenkripsi sudah ada di skema, tetapi resolver belum menulis ke tabel itu. Reveal IP admin juga belum dibuat di kode aplikasi.",
+      "Jika fitur itu diaktifkan nanti, alamat IP akan disimpan sebagai ciphertext AES-256-GCM di tabel terpisah, dipakai untuk investigasi penyalahgunaan, dan hanya bisa dibuka admin setelah verifikasi PIN dengan audit.",
+      "Vercel dan Supabase dapat memproses metadata request, log error, dan log infrastruktur sesuai kebijakan mereka. Log platform berada di luar kendali langsung aplikasi.",
     ],
   },
   {
-    title: "5. Why we process data",
+    title: "5. Resolver upstream",
     body: [
-      "To resolve DNS queries, apply blocklists, enforce rate limits, protect the service from abuse, operate accounts and dashboards, send authentication and security emails, and comply with legal obligations.",
-      "Where applicable, we rely on performance of a contract for account features, legitimate interests for security and service operation, and consent for optional blocked-domain logging.",
+      "Query yang diizinkan diteruskan ke resolver DoH Cloudflare, dengan resolver DoH Google sebagai fallback. Kedua penyedia menerima domain yang diminta dan metadata jaringan yang diperlukan untuk menjawab query. Kebijakan privasi mereka berlaku.",
+      "Query yang diblokir dijawab secara lokal dan tidak diteruskan ke upstream.",
     ],
   },
   {
-    title: "6. Retention",
+    title: "6. Retensi",
     body: [
-      `Blocked-domain events: ${RETENTION_DEFAULTS.blockedEventsDays} days by default, configurable by an administrator.`,
-      `Daily usage aggregates: ${RETENTION_DEFAULTS.usageDailyDays} days by default.`,
-      `Idle device records: ${RETENTION_DEFAULTS.idleDevicesDays} days by default. Purging device records does not delete accounts, device labels, or daily aggregates.`,
-      "Encrypted IP records are purged on the same schedule as idle device records unless needed for an active abuse investigation.",
-      "Account data is kept while the account exists. Deleting an account removes the account and its dependent data, subject to legal and security retention needs.",
+      `Batas default di skema: event blokir ${RETENTION_DEFAULTS.blockedEventsDays} hari, agregat pemakaian harian ${RETENTION_DEFAULTS.usageDailyDays} hari, dan perangkat idle ${RETENTION_DEFAULTS.idleDevicesDays} hari.`,
+      "Pembersihan otomatis belum dijadwalkan. Selama belum ada cron atau fungsi pembersihan, data yang sudah ditulis tidak dihapus otomatis.",
+      "Data akun disimpan selama akun ada. Penghapusan akun lewat dashboard belum tersedia; permintaan penghapusan bisa dikirim ke alamat kontak di bawah.",
     ],
   },
   {
-    title: "7. Sharing",
+    title: "7. Pihak ketiga",
     body: [
-      "We use Vercel for hosting and serverless functions, Supabase for authentication and database services, and Resend for transactional email. These providers process data on our behalf under their terms.",
-      "We may disclose data if required by law, to protect the service or its users, or during a merger or acquisition. We do not sell personal data.",
+      "Layanan ini memakai Vercel untuk hosting dan fungsi serverless, Supabase untuk autentikasi dan database, serta Cloudflare dan Google untuk resolver upstream.",
+      "Data dapat diungkapkan jika diwajibkan hukum, untuk melindungi layanan atau penggunanya, atau dalam proses merger atau akuisisi. Data tidak dijual.",
     ],
   },
   {
-    title: "8. Security",
+    title: "8. Keamanan",
     body: [
-      "Passwords are hashed with bcrypt. Sessions use HTTP-only cookies. IP addresses are encrypted at rest with a key stored only in the server environment. The IP vault is protected by row-level security, a PIN, lockout, a short-lived reveal session, and audit logging.",
-      "No service is perfectly secure. Use a unique password and do not reuse your username as a secret.",
+      "Kata sandi ditangani Supabase Auth dan tidak disimpan mentah oleh aplikasi. Sesi dikelola lewat cookie yang dipasang oleh integrasi Supabase.",
+      "Tabel server-only dicabut dari anon dan authenticated. Kunci service-role hanya dipakai di server. Tidak ada layanan yang sepenuhnya aman; pakai kata sandi unik dan jangan anggap username sebagai rahasia.",
     ],
   },
   {
-    title: "9. Your choices and rights",
+    title: "9. Pilihan dan hak",
     body: [
-      "You can access and update your account data, delete blocked-domain history, disable blocked-domain logging, delete your account, and request a copy of your data from the dashboard or by contacting us.",
-      "Depending on your jurisdiction, you may have rights to access, correct, delete, restrict, object, or port your data, and to withdraw consent. You may also lodge a complaint with your local data-protection authority.",
-      "The service is intended for adults. It is not directed to children, and we do not knowingly collect data from children.",
+      "Kamu bisa meminta akses, koreksi, salinan, atau penghapusan data akun dengan menghubungi alamat kontak di bawah. Fitur dashboard untuk mengubah profil dan menghapus riwayat belum tersedia di versi ini.",
+      "Tergantung yurisdiksi, kamu mungkin punya hak untuk membatasi, menolak, atau memindahkan data, serta menarik persetujuan. Kamu juga bisa mengajukan keluhan ke otoritas perlindungan data setempat.",
+      "Layanan ini ditujukan untuk orang dewasa dan tidak diarahkan kepada anak-anak.",
     ],
   },
   {
-    title: "10. Cookies",
+    title: "10. Cookie",
     body: [
-      "We use a session cookie for authentication and a short-lived cookie for the admin IP-reveal session. We do not use advertising or tracking cookies.",
+      "Cookie dipakai untuk sesi autentikasi. Situs ini tidak memakai cookie iklan atau pelacak.",
     ],
   },
   {
-    title: "11. International transfers",
+    title: "11. Perubahan dan kontak",
     body: [
-      "The service is hosted on Vercel and Supabase infrastructure that may process data outside your country. We choose regions and providers that are appropriate for a small personal deployment, but we cannot guarantee local data residency.",
-    ],
-  },
-  {
-    title: "12. Changes and contact",
-    body: [
-      "We may update this policy as the service changes. Material changes will be announced on this page.",
-      "Contact: privacy@nearguard.biz.id. Replace this address with a monitored mailbox before public launch.",
+      "Kebijakan ini dapat berubah saat layanan berubah. Perubahan penting akan diumumkan di halaman ini.",
+      "Kontak: privacy@nearguard.biz.id.",
     ],
   },
 ] as const;
 
 export default function PrivacyPage() {
   return (
-    <div className="container-page py-14 sm:py-20">
-      <div className="max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-          Trust
-        </p>
-        <h1 className="section-title mt-3">Privacy policy</h1>
+    <div className="container-page py-10 sm:py-14">
+      <header className="max-w-[65ch]">
+        <h1 className="section-title">Privasi</h1>
         <p className="section-copy">
-          A plain-language description of what {BRAND} processes, why, and for
-          how long. Last updated: November 16, 2026.
+          Penjelasan bahasa sederhana tentang data yang diproses {BRAND}, alasannya,
+          dan berapa lama datanya disimpan. Terakhir diperbarui: 18 November 2026.
         </p>
-        <div className="mt-6 rounded-2xl border border-amber-300/15 bg-amber-300/5 p-4 text-sm leading-6 text-amber-100/70">
-          This is a project policy, not legal advice. Have it reviewed against
-          the laws that apply to you before public launch.
-        </div>
-      </div>
+        <p className="notice mt-5">
+          Ini kebijakan proyek, bukan nasihat hukum. Mintakan tinjauan hukum
+          sebelum peluncuran publik.
+        </p>
+      </header>
 
       <div className="mt-10 max-w-3xl space-y-8">
         {sections.map((section) => (
           <section key={section.title}>
-            <h2 className="text-lg font-semibold text-white">{section.title}</h2>
+            <h2 className="text-lg font-semibold">{section.title}</h2>
             <div className="mt-3 space-y-3">
               {section.body.map((paragraph) => (
-                <p key={paragraph} className="text-sm leading-7 text-slate-400">
+                <p key={paragraph} className="text-sm leading-7 muted">
                   {paragraph}
                 </p>
               ))}
@@ -137,9 +125,9 @@ export default function PrivacyPage() {
         ))}
       </div>
 
-      <div className="mt-12 max-w-3xl border-t border-white/10 pt-6">
-        <Link href="/" className="btn-secondary no-underline">
-          Back to home
+      <div className="mt-10 max-w-3xl border-t border-[var(--line)] pt-6">
+        <Link href="/" className="btn-secondary">
+          Kembali ke beranda
         </Link>
       </div>
     </div>

@@ -6,6 +6,7 @@ export interface DnsEvent {
   deviceId?: string;
   domain?: string;
   qtype?: number;
+  category?: number;
   blocked: boolean;
   rateLimited: boolean;
   country?: string;

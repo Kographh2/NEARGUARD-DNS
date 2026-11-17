@@ -9,33 +9,33 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${DOMAIN}`),
   title: {
-    default: `${BRAND} — Private ad-blocking DNS for Apple devices`,
+    default: `${BRAND} · DNS penyaring untuk iPhone dan Mac`,
     template: `%s · ${BRAND}`,
   },
   description:
-    "NEAR ADGUARD is a privacy-conscious DNS-over-HTTPS resolver with ad and tracker blocking for iPhone, iPad, and Mac. Free endpoint, optional account, no app required.",
+    "NEAR ADGUARD adalah resolver DNS-over-HTTPS untuk iPhone, iPad, dan Mac. Memblokir iklan, pelacak, dan domain berbahaya. Endpoint gratis, akun opsional, tanpa aplikasi.",
   applicationName: BRAND,
   keywords: [
     "DNS-over-HTTPS",
     "DoH",
-    "ad blocking DNS",
-    "iPhone DNS profile",
-    "privacy DNS",
+    "DNS blokir iklan",
+    "profil DNS iPhone",
+    "DNS privasi",
     "NEAR ADGUARD",
   ],
   openGraph: {
     type: "website",
     url: `https://${DOMAIN}`,
     siteName: BRAND,
-    title: `${BRAND} — Private ad-blocking DNS for Apple devices`,
+    title: `${BRAND} · DNS penyaring untuk iPhone dan Mac`,
     description:
-      "Ad and tracker blocking at the DNS layer. DoH only. iOS and macOS profiles. No app, no Android.",
+      "Blokir iklan dan pelacak di lapisan DNS. DoH saja. Profil iOS dan macOS. Tanpa aplikasi, tanpa Android.",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${BRAND} — Private ad-blocking DNS for Apple devices`,
+    title: `${BRAND} · DNS penyaring untuk iPhone dan Mac`,
     description:
-      "Ad and tracker blocking at the DNS layer. DoH only. iOS and macOS profiles. No app, no Android.",
+      "Blokir iklan dan pelacak di lapisan DNS. DoH saja. Profil iOS dan macOS. Tanpa aplikasi, tanpa Android.",
   },
   robots: {
     index: true,
@@ -44,8 +44,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#05070a",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f4ef" },
+    { media: "(prefers-color-scheme: dark)", color: "#101211" },
+  ],
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -54,13 +57,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body>
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-emerald-400 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-slate-950"
-        >
-          Skip to content
+        <a href="#main" className="skip-link">
+          Lewati ke konten
         </a>
         <SiteHeader />
         <main id="main">{children}</main>

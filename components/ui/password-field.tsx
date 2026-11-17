@@ -42,9 +42,9 @@ export function PasswordField({
         <button
           type="button"
           onClick={() => setVisible((value) => !value)}
-          aria-label={visible ? `Hide ${label}` : `Show ${label}`}
+          aria-label={visible ? `Sembunyikan ${label}` : `Tampilkan ${label}`}
           aria-pressed={visible}
-          className="absolute inset-y-0 right-1 my-auto flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-white/5 hover:text-white"
+          className="absolute inset-y-0 right-1 my-auto flex h-9 w-9 items-center justify-center rounded text-[var(--muted)] transition hover:text-[var(--fg)]"
         >
           {visible ? (
             <svg
@@ -77,7 +77,7 @@ export function PasswordField({
         </button>
       </div>
       {hint ? (
-        <p id={`${id}-hint`} className="mt-1.5 text-xs leading-5 text-slate-500">
+        <p id={`${id}-hint`} className="field-hint">
           {hint}
         </p>
       ) : null}
