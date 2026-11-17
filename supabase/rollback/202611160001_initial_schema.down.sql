@@ -15,7 +15,7 @@ drop function if exists public.handle_new_user();
 drop function if exists public.protect_profile_fields();
 drop function if exists public.trim_blocked_events();
 drop function if exists public.set_updated_at();
-
+ 
 drop table if exists public.ip_reveal_audit cascade;
 drop table if exists public.admin_security cascade;
 drop table if exists public.rate_limit_overrides cascade;
