@@ -782,7 +782,7 @@ grant select on table public.blocked_events to authenticated;
 
 grant select, insert, update, delete on all tables in schema public to service_role;
 grant usage, select on all sequences in schema public to service_role;
-
+ 
 revoke all on function public.set_updated_at() from public, anon, authenticated;
 revoke all on function public.is_reserved_username(text) from public, anon, authenticated;
 revoke all on function public.validate_profile_username() from public, anon, authenticated;
