@@ -181,9 +181,10 @@ export default function HomePage() {
         <div className="max-w-[65ch]">
           <h2 className="section-title">Pasang di iPhone</h2>
           <p className="section-copy">
-            Unduh profil DNS gratis, lalu pasang dari Safari. Profil ini tidak
-            ditandatangani. iOS akan menampilkan peringatan “Unsigned”; itu
-            normal. Kamu bisa menghapus profil kapan saja di Pengaturan.
+            Unduh profil DNS gratis, lalu pasang dari Safari. Profil ini
+            ditandatangani dengan nama FizzxDevv - Kograph Team. Sertifikat itu
+            bukan sertifikat Apple, jadi iOS bisa menampilkan peringatan
+            verifikasi. Kamu bisa menghapus profil kapan saja di Pengaturan.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <a

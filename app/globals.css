@@ -123,6 +123,222 @@
     color: var(--accent-fg);
   }
 
+  .nav-form {
+    display: inline-flex;
+    margin: 0;
+  }
+
+  .nav-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .site-nav .nav-button {
+    color: var(--muted);
+  }
+
+  .site-nav .nav-button:hover {
+    color: var(--fg);
+  }
+
+  .site-footer .nav-button {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .site-footer .nav-button:hover {
+    color: var(--fg);
+  }
+
+  .stat-grid,
+  .admin-stats {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    margin-top: 1.5rem;
+  }
+
+  .stat {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 0.9rem 1rem;
+  }
+
+  .stat-label {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .stat-value {
+    margin-top: 0.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .admin-shell {
+    display: grid;
+    grid-template-columns: 16rem minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  .admin-sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+    padding: 1.25rem;
+  }
+
+  .admin-brand a {
+    display: block;
+    color: var(--fg);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+  }
+
+  .admin-brand span {
+    color: var(--muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .admin-nav a {
+    border-radius: 0.25rem;
+    padding: 0.45rem 0.6rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+    text-decoration: none;
+  }
+
+  .admin-nav a:hover {
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  .admin-nav a[aria-current="page"] {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .admin-sidebar-footer {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: auto;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .admin-sidebar-footer a,
+  .admin-sidebar-footer .nav-button {
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-decoration: none;
+  }
+
+  .admin-sidebar-footer a:hover,
+  .admin-sidebar-footer .nav-button:hover {
+    color: var(--fg);
+  }
+
+  .admin-main {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+
+  .admin-topbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--line);
+    padding: 0.75rem 1.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .admin-content {
+    width: 100%;
+    max-width: 80rem;
+    padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 4rem;
+  }
+
+  .admin-section {
+    margin-top: 2rem;
+  }
+
+  .admin-section h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .admin-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .install-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    margin-top: 1.25rem;
+  }
+
+  .install-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 1rem;
+  }
+
+  .install-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 800px) {
+    .admin-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .admin-sidebar {
+      position: static;
+      height: auto;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .admin-nav {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+
   .site-footer {
     margin-top: 4rem;
     border-top: 1px solid var(--line);

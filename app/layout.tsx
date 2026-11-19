@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { BRAND, DOMAIN } from "@/lib/constants";
 
 import "./globals.css";
@@ -58,14 +56,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body>
-        <a href="#main" className="skip-link">
-          Lewati ke konten
-        </a>
-        <SiteHeader />
-        <main id="main">{children}</main>
-        <SiteFooter />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

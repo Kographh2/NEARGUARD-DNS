@@ -13,6 +13,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "1.5.2",
+    date: "2026-11-19",
+    items: [
+      {
+        tag: "Perbaikan",
+        text: "Navbar dan footer mengikuti sesi. Tautan Masuk dan Buat akun diganti Dashboard dan Keluar setelah login, lalu kembali lagi setelah logout.",
+      },
+      {
+        tag: "Baru",
+        text: "Konsol admin memakai sidebar dengan halaman ringkasan, pengguna, perangkat, rate limit, blocklist, dan keamanan. Akses dibatasi profil dengan peran admin.",
+      },
+      {
+        tag: "Baru",
+        text: "Dashboard pengguna bisa mengunduh profil DNS pribadi untuk iPhone, iPad, dan Mac. ServerURL profil memakai path /<username>/<device> milik akun.",
+      },
+      {
+        tag: "Perubahan",
+        text: "Profil DNS gratis dan pribadi ditandatangani PKCS#7 dengan nama FizzxDevv - Kograph Team. Sertifikat ini bukan sertifikat Apple.",
+      },
+    ],
+  },
+  {
     version: "1.5.1",
     date: "2026-11-18",
     items: [

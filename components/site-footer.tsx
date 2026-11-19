@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SiteAccountLinks } from "@/components/site-account";
 import { BRAND, DOMAIN } from "@/lib/constants";
 import { APP_VERSION_DISPLAY } from "@/lib/version";
 
@@ -19,8 +20,7 @@ export function SiteFooter() {
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/privacy">Kebijakan privasi</Link>
           <a href={`https://${DOMAIN}/dns-query`}>Endpoint DoH gratis</a>
-          <Link href="/register">Buat akun</Link>
-          <Link href="/login">Masuk</Link>
+          <SiteAccountLinks />
         </div>
 
         <p className="max-w-[65ch]">

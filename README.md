@@ -48,8 +48,10 @@ VPN.
 - **No backups on Supabase Free.** Migrations live in git. Export before risky
   operations.
 - **Free clients get aggregate counters only.** No per-domain history.
-- **The generic iOS profile is unsigned.** iOS shows an “Unsigned” warning.
-  Review the profile before installing; remove it in Settings at any time.
+- **The iOS profiles use a self-issued signature.** The signer name is
+  FizzxDevv - Kograph Team. iOS can still show an unverified warning because the
+  certificate is not issued by Apple. Review the profile before installing;
+  remove it in Settings at any time.
 - **No `OnDemandRules`.** The profile applies the DNS setting without
   conditional activation rules.
 
@@ -93,9 +95,16 @@ traffic and are subject to the strict unknown-username limit.
 
 | Path | Behavior |
 |---|---|
-| `GET /nearguard.mobileconfig` | Unsigned free Apple DoH profile |
+| `GET /nearguard.mobileconfig` | Signed free Apple DoH profile |
+| `GET /dashboard/install/<device>` | Signed account profile for `/<username>/<device>` |
 | `POST /api/auth/register` | Create an account with Turnstile verification |
 | `POST /api/auth/login` | Sign in with Turnstile verification |
+| `GET /admin` | Admin overview with sidebar navigation |
+| `GET /admin/pengguna` | Read-only user list |
+| `GET /admin/perangkat` | Read-only device list |
+| `GET /admin/rate-limit` | Read-only rate-limit configuration |
+| `GET /admin/blocklist` | Blocklist artifact status |
+| `GET /admin/keamanan` | Admin security and reveal audit status |
 
 **Hot-path rule:** the DNS request path never awaits Supabase. Tier lookups use
 an in-memory cache, but production cache population is not wired yet. Events are
@@ -310,8 +319,10 @@ Do not print the generated values into logs or commit them.
 6. Open a site that normally shows ads and compare the result.
 
 The free profile points at `/dns-query`. A registered profile points at
-`/<username>` or `/<username>/<device-label>`. The profile is unsigned; iOS
-shows an “Unsigned” warning. Remove it in Settings at any time.
+`/<username>` or `/<username>/<device-label>` and is downloaded from the
+dashboard. Both profiles carry a self-issued signature with the signer name
+FizzxDevv - Kograph Team. iOS can still show an unverified warning because the
+certificate is not issued by Apple. Remove a profile in Settings at any time.
 
 ## Deploy outline
 
@@ -374,19 +385,21 @@ Supabase commands against a project without backups.
   rebuild workflow, parser/matcher tests, and Node.js vs Edge benchmark.
 - [x] Phase 4: Supabase schema, RLS policies, triggers, seed settings, down
   migration, RLS test script, and admin bootstrap script.
+- [x] Phase 5: login, register, logout, Turnstile checks, session-aware header,
+  and route protection. Password reset email delivery is still pending.
+- [x] Phase 7: rate limiting and dashboard usage reads.
+- [x] Phase 8: user dashboard with personal DoH URL and profile downloads.
+- [x] Phase 9: read-only admin dashboard with sidebar navigation.
+- [x] Phase 11: signed iOS/macOS profile generator.
 
 ### Pending
 
 - [ ] Phase 4 remote verification: apply the migration and run `npm run test:rls`
   with a real `SUPABASE_DB_URL`.
-- [ ] Phase 5: auth, Turnstile, Resend, route protection.
-- [ ] Phase 6: tier cache, device identity, non-blocking event pipeline.
-- [ ] Phase 7: rate limiting and dashboard usage.
-- [ ] Phase 8: user dashboard.
-- [ ] Phase 9: admin dashboard.
+- [ ] Phase 5 remaining: password reset routes and Resend email delivery.
+- [ ] Phase 6: per-account tier cache and a durable non-blocking event sink.
 - [ ] Phase 10: IP vault, PIN, decoy IPs.
-- [ ] Phase 11: iOS/macOS profile generator.
-- [ ] Phase 12: landing “Test your block”, final privacy copy.
+- [ ] Phase 12: landing "Test your block", final privacy copy.
 - [ ] Phase 13: security hardening and audit.
 - [ ] Phase 14: deploy and domain CNAME.
 - [ ] Phase 15: final validation on a real iPhone.
@@ -404,5 +417,6 @@ Supabase commands against a project without backups.
 - URLhaus now requires an abuse.ch Auth-Key; without `URLHAUS_API_KEY` that
   source is skipped.
 - No Android, DoT, DoQ, or plaintext DNS.
-- The generic profile is unsigned.
+- The iOS profiles use a self-issued signing certificate, not an Apple-issued
+  certificate.
 - Real-device and legal review remain owner actions.

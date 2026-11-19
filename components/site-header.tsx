@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SiteAccountNav } from "@/components/site-account";
 import { BRAND } from "@/lib/constants";
 import { APP_VERSION_DISPLAY } from "@/lib/version";
 
@@ -31,10 +32,7 @@ export function SiteHeader() {
           <Link href="/changelog" aria-label={`Versi ${APP_VERSION_DISPLAY}`}>
             {APP_VERSION_DISPLAY}
           </Link>
-          <Link href="/login">Masuk</Link>
-          <Link href="/register" className="btn-primary">
-            Buat akun
-          </Link>
+          <SiteAccountNav />
         </div>
       </div>
     </header>

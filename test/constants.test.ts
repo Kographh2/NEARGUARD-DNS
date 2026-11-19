@@ -16,25 +16,27 @@ function topLevelRouteSegments(): string[] {
   const appDir = join(process.cwd(), "app");
   const segments = new Set<string>();
 
-  for (const entry of readdirSync(appDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) {
-      continue;
-    }
-
-    if (entry.name.startsWith("(") && entry.name.endsWith(")")) {
-      const groupDir = join(appDir, entry.name);
-      for (const child of readdirSync(groupDir, { withFileTypes: true })) {
-        if (child.isDirectory() && !child.name.startsWith("[")) {
-          segments.add(child.name);
-        }
+  const visit = (relative: string): void => {
+    for (const entry of readdirSync(join(appDir, relative), {
+      withFileTypes: true,
+    })) {
+      if (!entry.isDirectory()) {
+        continue;
       }
-      continue;
-    }
 
-    if (!entry.name.startsWith("[") && !entry.name.startsWith("_")) {
-      segments.add(entry.name);
+      const name = entry.name;
+      if (name.startsWith("(") && name.endsWith(")")) {
+        visit(join(relative, name));
+        continue;
+      }
+      if (name.startsWith("[") || name.startsWith("_")) {
+        continue;
+      }
+      segments.add(name);
     }
-  }
+  };
+
+  visit(".");
 
   return [...segments].sort();
 }
