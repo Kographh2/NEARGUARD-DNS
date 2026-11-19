@@ -13,6 +13,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "1.5.1",
+    date: "2026-11-18",
+    items: [
+      {
+        tag: "Perbaikan",
+        text: "Dashboard memeriksa sesi Supabase, menampilkan akun yang masuk, dan menyediakan tombol keluar.",
+      },
+      {
+        tag: "Perbaikan",
+        text: "Halaman masuk mengalihkan pengguna yang sudah punya sesi ke dashboard.",
+      },
+    ],
+  },
+  {
     version: "1.5",
     date: "2026-11-18",
     items: [

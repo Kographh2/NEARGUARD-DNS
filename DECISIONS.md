@@ -14,3 +14,4 @@ and the latest decision wins.
 | D-063 | HaGeZi Threat Intelligence Mini assigns malware, phishing, scam, and cryptoScam bits to every entry | The source does not expose per-entry threat types, so the UI explains that category counts overlap |
 | D-064 | UI copy is plain Indonesian and marks schema-only or not-yet-wired features as unavailable | The landing and privacy pages must not claim per-account categories, event storage, or IP reveal that the runtime does not provide |
 | D-065 | The unchanged deployment was caused by UI-less commits, not by Vercel | `987a0aa` and `6054b96` changed only SQL/scripts; no UI file was committed |
+| D-066 | The dashboard must verify the Supabase session server-side and the login page must redirect an existing session to the dashboard | The previous static dashboard always showed a “Masuk” button, so a successful login looked like a failed login |

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { GET as registerGet, POST as registerPost } from "@/app/api/auth/register/route";
 import { GET as loginGet } from "@/app/api/auth/login/route";
+import { GET as logoutGet } from "@/app/api/auth/logout/route";
 
 const AUTH_ENV_KEYS = [
   "NEXT_PUBLIC_SUPABASE_URL",
@@ -17,7 +18,7 @@ afterEach(() => {
 
 describe("auth API routes", () => {
   it("rejects GET with 405 and Allow: POST", () => {
-    for (const response of [registerGet(), loginGet()]) {
+    for (const response of [registerGet(), loginGet(), logoutGet()]) {
       expect(response.status).toBe(405);
       expect(response.headers.get("allow")).toBe("POST");
     }

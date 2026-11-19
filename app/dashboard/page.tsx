@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import { createRouteSupabaseClient } from "@/lib/auth";
 import { APP_URL } from "@/lib/constants";
 import { APP_VERSION_DISPLAY } from "@/lib/version";
 
@@ -9,22 +11,74 @@ export const metadata: Metadata = {
   description: "Dashboard akun NEAR ADGUARD.",
 };
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const { supabase } = await createRouteSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, name, role, status")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const username =
+    typeof profile?.username === "string" ? profile.username : null;
+  const role = profile?.role === "admin" ? "Admin" : "Pengguna";
+  const status = typeof profile?.status === "string" ? profile.status : null;
+  const dohPath = username ? `${APP_URL}/${username}` : `${APP_URL}/username`;
+
   return (
     <div className="container-page py-10 sm:py-14">
       <header className="max-w-[65ch]">
         <h1 className="section-title">Dashboard</h1>
         <p className="section-copy">
-          Halaman ini belum tersambung ke data akun. Setelah sesi dan query
-          dashboard aktif, URL DoH pribadi, pemakaian, dan event blokir akan
-          tampil di sini.
+          Sesi akun aktif. Data pemakaian dan event blokir belum tersambung ke
+          dashboard.
         </p>
-        <p className="mt-4">
-          <Link href="/login" className="btn-secondary">
-            Masuk
-          </Link>
-        </p>
+        <form action="/api/auth/logout" method="post" className="mt-4">
+          <button type="submit" className="btn-secondary">
+            Keluar
+          </button>
+        </form>
       </header>
+
+      <section className="mt-8 max-w-3xl">
+        <h2 className="text-lg font-semibold">Akun</h2>
+        <table className="data-table mt-3">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Nilai</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Username</td>
+              <td>{username ?? "Belum tersedia"}</td>
+            </tr>
+            <tr>
+              <td>Email</td>
+              <td>{user.email ?? "Belum tersedia"}</td>
+            </tr>
+            <tr>
+              <td>Peran</td>
+              <td>{role}</td>
+            </tr>
+            <tr>
+              <td>Status</td>
+              <td>{status ?? "Belum tersedia"}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
       <section className="mt-8 max-w-3xl">
         <h2 className="text-lg font-semibold">Ringkasan</h2>
@@ -54,21 +108,21 @@ export default function DashboardPage() {
       <section className="mt-8 max-w-[65ch]">
         <h2 className="text-lg font-semibold">URL DoH pribadi</h2>
         <p className="small muted mt-2">
-          Format path akun terdaftar ada di bawah. Ganti bagian username dengan
-          username kamu. Path ini pengenal, bukan rahasia.
+          Ganti bagian username dengan username kamu. Path ini pengenal, bukan
+          rahasia.
         </p>
-        <div className="code-block mt-2">{APP_URL}/username</div>
+        <div className="code-block mt-2">{dohPath}</div>
         <p className="small muted mt-2">
-          Path per perangkat memakai bentuk {APP_URL}/username/iphone.
+          Path per perangkat memakai bentuk {dohPath}/iphone.
         </p>
       </section>
 
       <section className="mt-8 max-w-[65ch]">
         <h2 className="text-lg font-semibold">Aktivitas terbaru</h2>
         <p className="small muted mt-2">
-          Belum ada data. Event log domain belum aktif. Setelah tersambung,
-          log hanya tersedia untuk akun terdaftar yang mengaktifkan opsi log
-          domain diblokir.
+          Belum ada data. Event log domain belum aktif. Setelah tersambung, log
+          hanya tersedia untuk akun terdaftar yang mengaktifkan opsi log domain
+          diblokir.
         </p>
       </section>
 

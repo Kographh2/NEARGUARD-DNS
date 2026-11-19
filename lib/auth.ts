@@ -63,7 +63,10 @@ export function createServiceClient(
 }
 
 export async function createRouteSupabaseClient(
-  config: AuthConfig = getAuthConfig(),
+  config: Pick<AuthConfig, "url" | "anonKey"> = {
+    url: getSupabaseUrl(),
+    anonKey: getSupabaseAnonKey(),
+  },
 ): Promise<{
   supabase: SupabaseClient;
   applyTo: (response: NextResponse) => NextResponse;

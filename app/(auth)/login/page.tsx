@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { PasswordField } from "@/components/ui/password-field";
 import { TurnstileWidget } from "@/components/ui/turnstile-widget";
+import { createRouteSupabaseClient } from "@/lib/auth";
 import { publicEnv } from "@/lib/public-env";
 
 export const metadata: Metadata = {
@@ -28,6 +30,21 @@ export default async function LoginPage({
   const confirmed =
     (Array.isArray(params.confirmed) ? params.confirmed[0] : params.confirmed) ===
     "1";
+
+  let signedIn = false;
+  try {
+    const { supabase } = await createRouteSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    signedIn = Boolean(user);
+  } catch {
+    signedIn = false;
+  }
+
+  if (signedIn) {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="panel">

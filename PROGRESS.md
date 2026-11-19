@@ -1,6 +1,6 @@
 # NEAR ADGUARD progress
 
-Updated: 2026-11-18
+Updated: 2026-11-18 (v1.5.1 login fix)
 
 ## Workstreams
 
@@ -12,13 +12,14 @@ Updated: 2026-11-18
 | W3 | Complete | `lib/version.ts`, `content/changelog.ts`, static `/changelog`, header/footer version, and version/changelog tests |
 | W4 | Complete | Indonesian landing, auth, dashboard, admin, privacy, 404, changelog; plain light/dark CSS; semantic classes; no old card/neon classes |
 | W5 | Complete locally | Final checks pass. No commit and no deployment were performed. |
+| v1.5.1 | Complete locally | Dashboard checks the Supabase session, shows the signed-in account, and has a logout route. Login redirects signed-in users to the dashboard. |
 
 ## Current verification
 
 - `npm run typecheck`: pass.
 - `npm run lint`: pass.
-- `npm test`: 13 files, 117 tests pass.
-- `npm run build`: pass. 13 static/dynamic routes generated, including `/`, `/changelog`, `/privacy`, `/dashboard`, `/admin`, and auth pages.
+- `npm test`: 13 files, 119 tests pass.
+- `npm run build`: pass. 18 routes generated, including `/`, `/changelog`, `/privacy`, dynamic `/dashboard`, `/admin`, auth pages, and `/api/auth/logout`.
 - Blocklist build: 1,049,163 parsed entries, 673,093 unique domains, 5,782 removed by the allowlist, 667,311 blocked domains, 0 collisions, 6,005,799 bytes.
 - Category counts: ads 377,267; trackers 377,267; malware 182,363; phishing 262,608; scam 190,508; cryptoScam 376,371; gambling 6,744.
 
@@ -40,9 +41,9 @@ bug.
   buffered in memory and dropped. The schema and `flush_dns_counters` RPC exist.
 - Forgot-password and reset-password API routes do not exist; the pages say the
   feature is unavailable.
-- Dashboard and admin pages are static placeholders. No session-protected
-  dashboard, profile editor, device management, rate-limit console, or IP
-  reveal exists.
+- Dashboard is session-aware, but its usage, category, device, and event data
+  are still placeholders. Admin remains a static placeholder. No profile
+  editor, device management, rate-limit console, or IP reveal exists.
 - RLS tests have not run against the live database because the migration
   application is not confirmed in this session.
 - No deployment has been performed. The working tree contains uncommitted
@@ -55,4 +56,5 @@ bug.
 
 ## Next action
 
-Owner review, commit, and deploy. Do not commit or deploy automatically.
+Owner review, commit, and deploy, then test register, login, refresh, and logout
+against the live deployment. Do not commit or deploy automatically.

@@ -75,4 +75,16 @@ describe("auth links and forms", () => {
     expect(source).toContain("<TurnstileWidget");
     expect(source).toContain('action="login"');
   });
+
+  it("checks the dashboard session and provides logout", () => {
+    const source = read("app/dashboard/page.tsx");
+    expect(source).toContain("getUser");
+    expect(source).toContain('export const dynamic = "force-dynamic"');
+    expect(source).toContain('action="/api/auth/logout"');
+  });
+
+  it("redirects an existing session away from the login page", () => {
+    const source = read("app/(auth)/login/page.tsx");
+    expect(source).toContain('redirect("/dashboard")');
+  });
 });
