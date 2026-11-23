@@ -3,14 +3,14 @@
   "hash": "sha256-truncated-64-bit",
   "hashBytes": 8,
   "entryBytes": 9,
-  "generatedAt": "2026-11-22T11:39:14.835Z",
+  "generatedAt": "2026-11-23T13:09:21.443Z",
   "sources": [
     {
       "name": "HaGeZi Multi NORMAL",
       "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/multi.txt",
       "status": "ok",
-      "bytes": 5147554,
-      "entries": 233957,
+      "bytes": 4072866,
+      "entries": 180109,
       "categories": [
         "ads",
         "trackers"
@@ -21,8 +21,8 @@
       "name": "OISD Big",
       "url": "https://cdn.jsdelivr.net/gh/sjhgvr/oisd@main/domainswild2_big.txt",
       "status": "ok",
-      "bytes": 4382866,
-      "entries": 224379,
+      "bytes": 4317561,
+      "entries": 220432,
       "categories": [
         "ads",
         "trackers"
@@ -45,8 +45,8 @@
       "name": "Phishing Army Extended",
       "url": "https://phishing.army/download/phishing_army_blocklist_extended.txt",
       "status": "ok",
-      "bytes": 3173408,
-      "entries": 146192,
+      "bytes": 3172677,
+      "entries": 146083,
       "categories": [
         "phishing"
       ],
@@ -56,8 +56,8 @@
       "name": "HaGeZi Fake",
       "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/fake.txt",
       "status": "ok",
-      "bytes": 213674,
-      "entries": 10833,
+      "bytes": 204676,
+      "entries": 10378,
       "categories": [
         "scam"
       ],
@@ -100,8 +100,8 @@
       "name": "HaGeZi Threat Intelligence Mini",
       "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/tif.mini.txt",
       "status": "ok",
-      "bytes": 4877725,
-      "entries": 247395,
+      "bytes": 3844349,
+      "entries": 191162,
       "categories": [
         "malware",
         "phishing",
@@ -128,22 +128,22 @@
     "count": 10
   },
   "categoryCounts": {
-    "ads": 387770,
-    "trackers": 387770,
-    "malware": 247387,
-    "phishing": 329010,
-    "scam": 255526,
-    "cryptoScam": 441297,
+    "ads": 381871,
+    "trackers": 381871,
+    "malware": 191155,
+    "phishing": 279640,
+    "scam": 199441,
+    "cryptoScam": 385155,
     "gambling": 6744
   },
   "totals": {
-    "parsedEntries": 1152182,
-    "uniqueDomains": 747726,
-    "allowlisted": 5780,
-    "blockedDomains": 741946,
-    "hashes": 741946,
+    "parsedEntries": 1037590,
+    "uniqueDomains": 702321,
+    "allowlisted": 5739,
+    "blockedDomains": 696582,
+    "hashes": 696582,
     "collisions": 0,
-    "binBytes": 6677514,
-    "binSha256": "d9ebd7a59fa790326705f900c90a767474d9c979ffa006db1dc57e3bbb683be3"
+    "binBytes": 6269238,
+    "binSha256": "b904fe8ce195e1b8767a1643574f36729f09965b0d7468d004618d49b32fee88"
   }
 }
